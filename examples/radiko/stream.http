@@ -1,0 +1,7 @@
+GET https://radiko.jp/v3/station/stream/pc_html5/TBS.xml
+
+###
+
+#GET https://si-f-radiko.smartstream.ne.jp/so/playlist.m3u8?station_id=TBS&l=15&lsid=67f1ccea3419dce0730fcf1e866af83f&type=b
+GET https://si-f-radiko.smartstream.ne.jp/so/playlist.m3u8?station_id=TBS&l=15&lsid=&type=b
+X-Radiko-Authtoken: cZ_uGPVR6xiCJnASHQPCxw

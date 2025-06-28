@@ -1,0 +1,5 @@
+GET https://radiko.jp/v2/api/auth1
+X-Radiko-App: pc_html5
+X-Radiko-App-Version: 0.0.1
+X-Radiko-User: dummy_user
+X-Radiko-Device: pc
