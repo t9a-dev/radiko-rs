@@ -1,6 +1,7 @@
 use anyhow::Result;
 
 use base64::{Engine, engine::general_purpose};
+use regex::Regex;
 use reqwest::{Client, header::HeaderMap};
 
 use crate::api::endpoint::RadikoEndpoint;
@@ -16,6 +17,24 @@ impl RadikoAuthManager {
             http_client: Client::new(),
             auth_token: None,
         }
+    }
+
+    pub async fn get_area_id(&self) -> Result<String> {
+        let response_body = self
+            .http_client
+            .get(RadikoEndpoint::get_area_id_endpoint())
+            .send()
+            .await?
+            .text()
+            .await?;
+
+        let area_id_pattern = Regex::new(r"[A-Z]{2}[0-9]{2}")?;
+        let Some(area_id_caps) = area_id_pattern.captures(&response_body) else {
+            panic!("not found pattern area_id");
+        };
+        let area_id = &area_id_caps[0];
+
+        Ok(area_id.to_string())
     }
 
     pub async fn get_auth_token(&self) -> Result<String> {
@@ -41,7 +60,7 @@ impl RadikoAuthManager {
         Ok(Client::builder().default_headers(headers).build()?)
     }
 
-    pub async fn refresh_auth_token(&mut self) -> Result<()>{
+    pub async fn refresh_auth_token(&mut self) -> Result<()> {
         self.auth_token = Some(self.generate_auth_token().await?);
         Ok(())
     }
@@ -113,15 +132,15 @@ impl RadikoAuthManager {
 }
 
 #[cfg(test)]
-mod tests{
+mod tests {
     use super::*;
 
     #[tokio::test]
-    async fn get_auth_token_test() -> Result<()>{
+    async fn get_auth_token_test() -> Result<()> {
         let radiko_auth_manager = RadikoAuthManager::new();
         let token = radiko_auth_manager.get_auth_token().await?;
-        println!("{}",&token);
-        assert_ne!("",&token);
+        println!("{}", &token);
+        assert_ne!("", &token);
         Ok(())
     }
 }

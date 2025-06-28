@@ -9,6 +9,9 @@ name = "radiko_rs"
 [dependencies]
 anyhow = "1.0.98"
 base64 = "0.22.1"
+quick-xml = { version = "0.37.5", features = ["serialize"] }
 regex = "1.11.1"
 reqwest = "0.12.20"
+serde = "1.0.219"
+serde_derive = "1.0.219"
 tokio = { version = "1.45.1", features = ["full"] }

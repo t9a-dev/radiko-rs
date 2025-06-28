@@ -1,5 +1,4 @@
 use reqwest::Client;
-use std::time::Duration;
 
 use crate::api::auth::RadikoAuthManager;
 
@@ -11,8 +10,11 @@ pub struct RadikoClient {
 impl RadikoClient {
     pub async fn new(radiko_auth_manager: RadikoAuthManager) -> Self {
         Self {
-            http_client: radiko_auth_manager.get_http_client_with_auth_token().await.unwrap(),
-            area_id: "".to_string(),
+            http_client: radiko_auth_manager
+                .get_http_client_with_auth_token()
+                .await
+                .unwrap(),
+            area_id: radiko_auth_manager.get_area_id().await.unwrap(),
         }
     }
 }
