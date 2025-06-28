@@ -1,6 +1,6 @@
 use anyhow::Result;
 
-use crate::{client::RadikoClient, models};
+use crate::client::RadikoClient;
 
 use super::endpoint::RadikoEndpoint;
 
@@ -42,7 +42,7 @@ mod tests {
         let radiko_client = RadikoClient::new(radiko_auth_manager).await;
         let radiko_stream = RadikoStream::new(station_id, radiko_client);
 
-        assert_eq!(true, radiko_stream.validate_stream_url().await?);
+        assert!(radiko_stream.validate_stream_url().await?);
         Ok(())
     }
 }

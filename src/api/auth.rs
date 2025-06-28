@@ -11,6 +11,12 @@ pub struct RadikoAuthManager {
     auth_token: Option<String>,
 }
 
+impl Default for RadikoAuthManager {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl RadikoAuthManager {
     pub fn new() -> Self {
         Self {
