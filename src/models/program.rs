@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 use chrono::{DateTime, NaiveDateTime, TimeDelta, TimeZone, Utc};
 use chrono_tz::{Asia::Tokyo, Tz};
 use serde_derive::{Deserialize, Serialize};
