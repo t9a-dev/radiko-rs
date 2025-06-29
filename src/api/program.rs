@@ -16,10 +16,7 @@ impl RadikoProgram {
         }
     }
 
-    pub async fn get_now_on_air_programs(
-        &self,
-        area_id: &str
-    ) -> Result<Programs>{
+    pub async fn get_now_on_air_programs(&self, area_id: &str) -> Result<Programs> {
         let res = self
             .http_client
             .get(RadikoEndpoint::get_now_on_air_programs(area_id))
@@ -78,9 +75,7 @@ mod tests {
     async fn get_now_on_air_programs_test() -> Result<()> {
         let area_id = "JP13";
         let radiko_program = RadikoProgram::new();
-        let programs = radiko_program
-            .get_now_on_air_programs(area_id)
-            .await?;
+        let programs = radiko_program.get_now_on_air_programs(area_id).await?;
 
         println!("{}_now_on_air_programs: {:#?}", area_id, programs);
 

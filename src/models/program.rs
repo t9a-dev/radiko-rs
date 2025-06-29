@@ -101,12 +101,12 @@ pub struct Programs {
 }
 
 impl Program {
-    pub fn get_duration_to_start_from_now(&self)-> TimeDelta {
+    pub fn get_duration_to_start_from_now(&self) -> TimeDelta {
         let now = Utc::now().with_timezone(&Tokyo);
         now.signed_duration_since(self.start_time)
     }
 
-    pub fn get_duration_start_to_end(&self)-> TimeDelta {
+    pub fn get_duration_start_to_end(&self) -> TimeDelta {
         self.start_time.signed_duration_since(self.end_time)
     }
 }

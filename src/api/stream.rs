@@ -5,21 +5,25 @@ use crate::client::RadikoClient;
 use super::endpoint::RadikoEndpoint;
 
 pub struct RadikoStream {
-    client: RadikoClient,
+    radiko_client: RadikoClient,
     stream_url: String,
 }
 
 impl RadikoStream {
     pub fn new(station_id: &str, radiko_client: RadikoClient) -> Self {
         Self {
-            client: radiko_client,
+            radiko_client,
             stream_url: RadikoEndpoint::get_playlist_create_url_endpoint(station_id),
         }
     }
 
+    pub fn get_stream_url(&self) -> &str {
+        &self.stream_url
+    }
+
     pub async fn validate_stream_url(&self) -> Result<bool> {
         let res = self
-            .client
+            .radiko_client
             .http_client
             .get(self.stream_url.clone())
             .send()

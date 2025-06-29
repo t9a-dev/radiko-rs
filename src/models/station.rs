@@ -1,6 +1,6 @@
 use serde_derive::{Deserialize, Serialize};
 
-use crate::dto::station_xml::{RadikoStationXml, StationXml as StationXmlDto, LogoXml};
+use crate::dto::station_xml::{LogoXml, RadikoStationXml, StationXml as StationXmlDto};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Station {
