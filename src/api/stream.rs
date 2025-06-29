@@ -42,7 +42,7 @@ mod tests {
     #[tokio::test]
     async fn valid_stream_url_test() -> Result<()> {
         let station_id = "TBS";
-        let radiko_auth_manager = RadikoAuthManager::new();
+        let radiko_auth_manager = RadikoAuthManager::new().await;
         let radiko_client = RadikoClient::new(radiko_auth_manager).await;
         let radiko_stream = RadikoStream::new(station_id, radiko_client);
 

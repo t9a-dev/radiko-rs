@@ -8,21 +8,21 @@ use crate::api::endpoint::RadikoEndpoint;
 
 pub struct RadikoAuthManager {
     http_client: Client,
-    auth_token: Option<String>,
-}
-
-impl Default for RadikoAuthManager {
-    fn default() -> Self {
-        Self::new()
-    }
+    auth_token: String,
 }
 
 impl RadikoAuthManager {
-    pub fn new() -> Self {
-        Self {
+    pub async fn new() -> Self {
+        let mut auth_manager = Self {
             http_client: Client::new(),
-            auth_token: None,
-        }
+            auth_token: "".to_string(),
+        };
+        auth_manager.auth_token = 
+            auth_manager.generate_auth_token()
+            .await
+            .expect("RadikoAuthManager initialize failed.")
+        ;
+        auth_manager
     }
 
     pub async fn get_area_id(&self) -> Result<String> {
@@ -43,36 +43,29 @@ impl RadikoAuthManager {
         Ok(area_id.to_string())
     }
 
-    pub async fn get_auth_token(&self) -> Result<String> {
-        match &self.auth_token {
-            Some(token) => Ok(token.clone()),
-            None => self.generate_auth_token().await,
+    pub async fn get_auth_token(&mut self) -> Result<String> {
+        if self.auth_token.is_empty(){
+            self.generate_auth_token().await?;
         }
+
+        Ok(self.auth_token.clone())
     }
 
-    pub async fn get_http_client_with_auth_token(&self) -> Result<Client> {
+    pub async fn get_http_client_with_auth_token(&mut self) -> Result<Client> {
         let mut headers = HeaderMap::new();
+        let token = self.get_auth_token().await?;
 
-        match &self.auth_token {
-            Some(token) => {
-                headers.insert("X-Radiko-Authtoken", token.parse()?);
-            }
-            None => {
-                let token = self.generate_auth_token().await?;
-                headers.insert("X-Radiko-Authtoken", token.parse()?);
-            }
-        }
+        headers.insert("X-Radiko-Authtoken", token.parse()?);
 
         Ok(Client::builder().default_headers(headers).build()?)
     }
 
     pub async fn refresh_auth_token(&mut self) -> Result<()> {
-        self.auth_token = Some(self.generate_auth_token().await?);
+        self.auth_token = self.generate_auth_token().await?;
         Ok(())
     }
 
-    async fn generate_auth_token(&self) -> Result<String> {
-        let client = self.http_client.clone();
+    async fn generate_auth_token(&mut self) -> Result<String> {
         let auth1_url = RadikoEndpoint::get_auth1_endpoint();
         let auth2_url = RadikoEndpoint::get_auth2_endpoint();
         let auth_key = Self::get_public_auth_key().await;
@@ -84,6 +77,7 @@ impl RadikoAuthManager {
         headers.insert("X-Radiko-User", "dummy_user".parse()?);
         headers.insert("X-Radiko-Device", "pc".parse()?);
 
+        let client = Client::new();
         let res_auth1 = client.get(auth1_url).headers(headers).send().await?;
 
         // auth2
@@ -114,12 +108,13 @@ impl RadikoAuthManager {
 
         let _res_auth2 = client
             .get(auth2_url)
-            .headers(headers)
+            .headers(headers.clone())
             .send()
             .await?
             .text()
             .await?;
 
+        self.http_client = Client::builder().default_headers(headers).build()?;
         Ok(auth_token.to_string())
     }
 
@@ -143,7 +138,7 @@ mod tests {
 
     #[tokio::test]
     async fn get_auth_token_test() -> Result<()> {
-        let radiko_auth_manager = RadikoAuthManager::new();
+        let mut radiko_auth_manager = RadikoAuthManager::new().await;
         let token = radiko_auth_manager.get_auth_token().await?;
         println!("{}", &token);
         assert_ne!("", &token);

@@ -8,7 +8,7 @@ pub struct RadikoClient {
 }
 
 impl RadikoClient {
-    pub async fn new(radiko_auth_manager: RadikoAuthManager) -> Self {
+    pub async fn new(mut radiko_auth_manager: RadikoAuthManager) -> Self {
         Self {
             http_client: radiko_auth_manager
                 .get_http_client_with_auth_token()
