@@ -22,28 +22,24 @@ impl RadikoEndpoint {
         format!("{}api/program/search", V3_URL)
     }
 
-    // https://radiko.jp/v3/station/list/JP13.xml
     pub fn get_stations_endpoint(area_id: &str) -> String {
         format!("{}station/list/{}.xml", V3_URL, area_id)
     }
 
-    // https://api.radiko.jp/program/v3/weekly/TBS.xml
     pub fn get_weekly_programs_endpoint(station_id: &str) -> String {
         format!("{}program/v3/weekly/{}.xml", API_URL, station_id)
     }
 
     pub fn get_stream_url_list_endpoint(station_id: &str) -> String {
-        // https://radiko.jp/v3/station/stream/pc_html5/TBS.xml
         format!("{}station/stream/pc_html5/{}.xml", V3_URL, station_id)
     }
 
     pub fn get_stream_url(station_id: &str, stream_url: &str) -> String {
-        // https://si-f-radiko.smartstream.ne.jp/so/playlist.m3u8?station_id=TBS&l=15&lsid=&type=b
         format!("{}?station_id={}&l=15&lsid=&type=b", stream_url, station_id)
     }
 
     /// HLSストリーミングのMasterPlaylist.m3u8を返すエンドポイントを取得
-    /// radikoによる仕様変更時、エンドポイント自体が変更されたりクエリパラメータが変更される模様
+    /// radikoによる仕様変更時にはエンドポイント自体が変更されたり、クエリパラメータが変更される模様
     pub fn get_playlist_create_url_endpoint(station_id: &str) -> String {
         // https://si-f-radiko.smartstream.ne.jp/so/playlist.m3u8?station_id=TBS&l=15&lsid=&type=b
         format!(
