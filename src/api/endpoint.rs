@@ -22,7 +22,7 @@ impl RadikoEndpoint {
         format!("{}api/program/search", V3_URL)
     }
 
-    pub fn get_stations_endpoint(area_id: &str) -> String {
+    pub fn get_station_list_endpoint(area_id: &str) -> String {
         format!("{}station/list/{}.xml", V3_URL, area_id)
     }
 
@@ -93,7 +93,7 @@ mod tests {
         let area_id = "JP13";
         assert_eq!(
             format!("https://radiko.jp/v3/station/list/{}.xml", area_id),
-            RadikoEndpoint::get_stations_endpoint(area_id)
+            RadikoEndpoint::get_station_list_endpoint(area_id)
         );
     }
 
