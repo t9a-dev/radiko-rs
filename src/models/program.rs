@@ -1,3 +1,5 @@
+use chrono::{DateTime, NaiveDateTime, TimeZone };
+use chrono_tz::{Asia::Tokyo, Tz};
 use serde_derive::{Deserialize, Serialize};
 
 use crate::dto::program_xml::{ProgramXml, RadikoProgramXml};
@@ -76,51 +78,21 @@ use crate::dto::program_xml::{ProgramXml, RadikoProgramXml};
 //   },
 // ]
 // ```
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PersonalityGenre {
-    pub id: String,
-    pub name: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProgramGenre {
-    pub id: String,
-    pub name: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Genre {
-    pub personality: Option<PersonalityGenre>,
-    pub program: Option<ProgramGenre>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Meta {
-    pub name: String,
-    pub value: String,
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Program {
-    pub start_time: String,
-    pub end_time: String,
+    #[serde(with = "jst_datetime")]
+    pub start_time: DateTime<Tz>,
+    #[serde(with = "jst_datetime")]
+    pub end_time: DateTime<Tz>,
     pub start_time_s: String,
     pub end_time_s: String,
-    pub program_date: String,
-    pub program_url: String,
     pub station_id: String,
     pub performer: String,
     pub title: String,
     pub info: String,
     pub description: String,
-    pub status: String,
     pub img: String,
-    pub genre: Option<Genre>,
-    pub ts_in_ng: i32,
-    pub ts_out_ng: i32,
-    pub tsplus_in_ng: i32,
-    pub tsplus_out_ng: i32,
-    pub metas: Vec<Meta>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -130,26 +102,27 @@ pub struct Programs {
 
 impl From<ProgramXml> for Program {
     fn from(value: ProgramXml) -> Self {
+        let ft = 
+            Tokyo.from_local_datetime(
+                &NaiveDateTime::parse_from_str(&value.ft,"%Y%m%d%H%M%S" )
+                .expect("time parse error")
+            ).unwrap();
+        let to = 
+            Tokyo.from_local_datetime(
+                &NaiveDateTime::parse_from_str(&value.to,"%Y%m%d%H%M%S" )
+                .expect("time parse error")
+            ).unwrap();
         Program {
-            start_time: value.ft.clone(),
-            end_time: value.to.clone(),
+            start_time: ft,
+            end_time: to,
             start_time_s: value.ftl.clone(),
             end_time_s: value.tol.clone(),
-            program_date: "".to_string(),
-            program_url: value.url_link.unwrap_or_default(),
             station_id: "".to_string(),
             performer: value.pfm.unwrap_or_default(),
             title: value.title.clone(),
             info: value.info.unwrap_or_default(),
             description: value.desc.unwrap_or_default(),
-            status: "".to_string(),
             img: value.img.unwrap_or_default(),
-            genre: None,
-            ts_in_ng: value.ts_in_ng.unwrap_or(0) as i32,
-            ts_out_ng: value.ts_out_ng.unwrap_or(0) as i32,
-            tsplus_in_ng: value.tsplus_in_ng.unwrap_or(0) as i32,
-            tsplus_out_ng: value.tsplus_out_ng.unwrap_or(0) as i32,
-            metas: Vec::new(),
         }
     }
 }
@@ -167,5 +140,50 @@ impl From<RadikoProgramXml> for Programs {
             }
         }
         Programs { data: programs }
+    }
+}
+
+mod jst_datetime {
+    use chrono::{DateTime, TimeZone, NaiveDateTime};
+    use chrono_tz::{Asia::Tokyo, Tz};
+    use serde::{self, Deserialize, Serializer, Deserializer};
+
+    const FORMAT: &'static str = "%Y-%m-%d %H:%M:%S";
+
+    // The signature of a serialize_with function must follow the pattern:
+    //
+    //    fn serialize<S>(&T, S) -> Result<S::Ok, S::Error>
+    //    where
+    //        S: Serializer
+    //
+    // although it may also be generic over the input types T.
+    pub fn serialize<S>(
+        date: &DateTime<Tz>,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let s = format!("{}", date.format(FORMAT));
+        serializer.serialize_str(&s)
+    }
+
+    // The signature of a deserialize_with function must follow the pattern:
+    //
+    //    fn deserialize<'de, D>(D) -> Result<T, D::Error>
+    //    where
+    //        D: Deserializer<'de>
+    //
+    // although it may also be generic over the output types T.
+    pub fn deserialize<'de, D>(
+        deserializer: D,
+    ) -> Result<DateTime<Tz>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        let dt =
+         NaiveDateTime::parse_from_str(&s, FORMAT).unwrap();
+        Ok(Tokyo.from_local_datetime(&dt).unwrap())
     }
 }

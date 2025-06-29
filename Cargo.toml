@@ -9,6 +9,8 @@ name = "radiko_rs"
 [dependencies]
 anyhow = "1.0.98"
 base64 = "0.22.1"
+chrono = "0.4.41"
+chrono-tz = "0.10.3"
 quick-xml = { version = "0.37.5", features = ["serialize"] }
 regex = "1.11.1"
 reqwest = "0.12.20"
