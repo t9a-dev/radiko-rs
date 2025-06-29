@@ -16,7 +16,15 @@ src/
 │   ├── auth.rs         # RadikoAuthManager - 認証トークン管理
 │   ├── endpoint.rs     # RadikoEndpoint - APIエンドポイント定義
 │   ├── stream.rs       # RadikoStream - ストリーミング機能
-│   └── program.rs      # 番組情報API（未実装）
+│   ├── program.rs      # 番組情報API
+│   └── mod.rs          # APIモジュール定義
+├── dto/
+│   ├── program_xml.rs  # XML解析用データ構造
+│   └── mod.rs          # DTOモジュール定義
+├── models/
+│   ├── program.rs      # 番組情報モデル
+│   ├── search.rs       # 検索関連モデル
+│   └── mod.rs          # モデルモジュール定義
 └── traits/
     └── auth.rs         # 認証関連のトレイト定義
 ```
@@ -70,12 +78,31 @@ cargo clippy
 ## Key Dependencies
 
 - `reqwest`: HTTP client
-- `tokio`: Async runtime
+- `tokio`: Async runtime with full features
 - `anyhow`: Error handling
 - `base64`: Base64 encoding for authentication
 - `regex`: Pattern matching for auth key extraction
+- `serde`/`serde_json`: Serialization/deserialization
+- `quick-xml`: XML parsing with serialize feature
+- `chrono`/`chrono-tz`: Date/time handling with timezone support
+- `strum`: Enum utilities
+
+## Project Structure Details
+
+### Module Organization
+- **api/**: radiko API との通信を処理するモジュール群
+- **dto/**: XMLからデータを解析するためのデータ転送オブジェクト
+- **models/**: アプリケーション内で使用されるデータモデル
+- **client.rs**: 認証済みHTTPクライアントのラッパー
+
+### Example Usage
+`examples/radiko/`ディレクトリには実際のHTTP リクエスト例が含まれています：
+- `auth.http`: 認証フロー
+- `stream.http`: ストリーミングエンドポイント
+- `search.http`: 番組検索
+- `weekly_program.http`: 週間番組表
 
 ## Known Limitations
 
 - `get_playlist_create_url_endpoint`は固定URLを返すが、radikoの仕様変更で定期的に変わる可能性がある
-- 一部の機能（番組情報API等）は未実装
+- `memo.md`に記載されている通り、ストリーミングエンドポイントの確認にはブラウザでの手動確認が必要

@@ -75,7 +75,7 @@ impl RadikoAuthManager {
         let client = self.http_client.clone();
         let auth1_url = RadikoEndpoint::get_auth1_endpoint();
         let auth2_url = RadikoEndpoint::get_auth2_endpoint();
-        let auth_key = Self::get_auth_key().await;
+        let auth_key = Self::get_public_auth_key().await;
 
         // auth1
         let mut headers = HeaderMap::new();
@@ -123,7 +123,7 @@ impl RadikoAuthManager {
         Ok(auth_token.to_string())
     }
 
-    async fn get_auth_key() -> String {
+    async fn get_public_auth_key() -> String {
         // https://github.com/miyagawa/ripdiko/blob/e9080f99c4c45b112256d822802f3dd56ab908f1/bin/ripdiko#L66
         let url = "https://radiko.jp/apps/js/playerCommon.js";
         let response_body = reqwest::get(url).await.unwrap().text().await.unwrap();
