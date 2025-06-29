@@ -26,6 +26,10 @@ impl RadikoEndpoint {
         format!("{}station/list/{}.xml", V3_URL, area_id)
     }
 
+    // https://api.radiko.jp/program/v3/now/JP13.xml
+    pub fn get_now_on_air_programs(area_id: &str) -> String {
+        format!("{}program/v3/now/{}.xml",API_URL,area_id)
+    }
     pub fn get_weekly_programs_endpoint(station_id: &str) -> String {
         format!("{}program/v3/weekly/{}.xml", API_URL, station_id)
     }
@@ -94,6 +98,15 @@ mod tests {
         assert_eq!(
             format!("https://radiko.jp/v3/station/list/{}.xml", area_id),
             RadikoEndpoint::get_station_list_endpoint(area_id)
+        );
+    }
+
+    #[test]
+    fn get_now_on_air_programs() {
+        let area_id = "JP13";
+        assert_eq!(
+            format!("https://api.radiko.jp/program/v3/now/{}.xml",area_id),
+            RadikoEndpoint::get_now_on_air_programs(area_id)
         );
     }
 

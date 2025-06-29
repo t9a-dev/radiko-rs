@@ -16,6 +16,23 @@ impl RadikoProgram {
         }
     }
 
+    pub async fn get_now_on_air_programs(
+        &self,
+        area_id: &str
+    ) -> Result<Programs>{
+        let res = self
+            .http_client
+            .get(RadikoEndpoint::get_now_on_air_programs(area_id))
+            .send()
+            .await?
+            .text()
+            .await?;
+
+        let radiko_program: RadikoProgramXml = quick_xml::de::from_str(&res)?;
+
+        Ok(Programs::from(radiko_program))
+    }
+
     pub async fn find_program_from_condition(
         &self,
         condition: &SearchCondition,
@@ -56,6 +73,21 @@ mod tests {
     use crate::api::program::RadikoProgram;
     use crate::models::search::SearchCondition;
     use anyhow::{Ok, Result};
+
+    #[tokio::test]
+    async fn get_now_on_air_programs_test() -> Result<()> {
+        let area_id = "JP13";
+        let radiko_program = RadikoProgram::new();
+        let programs = radiko_program
+            .get_now_on_air_programs(area_id)
+            .await?;
+
+        println!("{}_now_on_air_programs: {:#?}", area_id, programs);
+
+        assert!(programs.data.len() > 0);
+
+        Ok(())
+    }
 
     #[tokio::test]
     async fn find_program_from_condition_test() -> Result<()> {
