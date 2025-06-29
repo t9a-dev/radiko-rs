@@ -1,4 +1,5 @@
-use crate::models::program::{SearchCondition, SearchResults};
+use crate::{dto::program_xml::RadikoProgramXml, models::program::Programs};
+use crate::models::search::SearchCondition;
 use anyhow::{Result, anyhow};
 use reqwest::Client;
 
@@ -18,7 +19,7 @@ impl RadikoProgram {
     pub async fn find_program_from_condition(
         &self,
         condition: &SearchCondition,
-    ) -> Result<SearchResults> {
+    ) -> Result<Programs> {
         if condition.key.is_empty() {
             return Err(anyhow!("condition key required."));
         }
@@ -35,16 +36,26 @@ impl RadikoProgram {
         Ok(serde_json::from_str(&res)?)
     }
 
-    pub async fn find_program_from_station(&self, _station_id: &str) -> Result<SearchCondition> {
-        todo!()
+    pub async fn find_weekly_programs_from_station(&self, station_id: &str) -> Result<Programs> {
+        let res = self
+        .http_client
+        .get(RadikoEndpoint::get_weekly_programs_endpoint(station_id))
+        .send()
+        .await?
+        .text()
+        .await?;
+
+        let radiko_program: RadikoProgramXml = quick_xml::de::from_str(&res)?;
+
+        Ok(Programs::from(radiko_program))
     }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::api::program::RadikoProgram;
-    use crate::models::program::SearchCondition;
-    use anyhow::Result;
+    use crate::models::search::SearchCondition;
+    use anyhow::{Ok, Result};
 
     #[tokio::test]
     async fn find_program_from_condition_test() -> Result<()> {
@@ -58,12 +69,23 @@ mod tests {
             .find_program_from_condition(&search_condition)
             .await?;
 
-        result
-            .data
-            .iter()
-            .for_each(|program| println!("{}", program.title));
+        println!("{:#?}",result);
 
         assert!(result.data.len() > 0);
+        Ok(())
+    }
+    
+    #[tokio::test]
+    async fn find_weekly_programs_from_station_test() -> Result<()>{
+        let station_id = "LFR";
+        let radiko_program = RadikoProgram::new();
+        let programs = radiko_program
+            .find_weekly_programs_from_station(station_id).await?;
+
+        println!("{}_weekly_programs: {:#?}",station_id,programs);
+
+        assert!(programs.data.len() > 0);
+
         Ok(())
     }
 }
