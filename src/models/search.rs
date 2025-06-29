@@ -1,4 +1,3 @@
-
 use serde_derive::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use strum_macros::{AsRefStr, Display};

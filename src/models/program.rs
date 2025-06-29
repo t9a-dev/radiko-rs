@@ -1,4 +1,4 @@
-use chrono::{DateTime, NaiveDateTime, TimeZone };
+use chrono::{DateTime, NaiveDateTime, TimeZone};
 use chrono_tz::{Asia::Tokyo, Tz};
 use serde_derive::{Deserialize, Serialize};
 
@@ -102,16 +102,18 @@ pub struct Programs {
 
 impl From<ProgramXml> for Program {
     fn from(value: ProgramXml) -> Self {
-        let ft = 
-            Tokyo.from_local_datetime(
-                &NaiveDateTime::parse_from_str(&value.ft,"%Y%m%d%H%M%S" )
-                .expect("time parse error")
-            ).unwrap();
-        let to = 
-            Tokyo.from_local_datetime(
-                &NaiveDateTime::parse_from_str(&value.to,"%Y%m%d%H%M%S" )
-                .expect("time parse error")
-            ).unwrap();
+        let ft = Tokyo
+            .from_local_datetime(
+                &NaiveDateTime::parse_from_str(&value.ft, "%Y%m%d%H%M%S")
+                    .expect("time parse error"),
+            )
+            .unwrap();
+        let to = Tokyo
+            .from_local_datetime(
+                &NaiveDateTime::parse_from_str(&value.to, "%Y%m%d%H%M%S")
+                    .expect("time parse error"),
+            )
+            .unwrap();
         Program {
             start_time: ft,
             end_time: to,
@@ -144,9 +146,9 @@ impl From<RadikoProgramXml> for Programs {
 }
 
 mod jst_datetime {
-    use chrono::{DateTime, TimeZone, NaiveDateTime};
+    use chrono::{DateTime, NaiveDateTime, TimeZone};
     use chrono_tz::{Asia::Tokyo, Tz};
-    use serde::{self, Deserialize, Serializer, Deserializer};
+    use serde::{self, Deserialize, Deserializer, Serializer};
 
     const FORMAT: &'static str = "%Y-%m-%d %H:%M:%S";
 
@@ -157,10 +159,7 @@ mod jst_datetime {
     //        S: Serializer
     //
     // although it may also be generic over the input types T.
-    pub fn serialize<S>(
-        date: &DateTime<Tz>,
-        serializer: S,
-    ) -> Result<S::Ok, S::Error>
+    pub fn serialize<S>(date: &DateTime<Tz>, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
@@ -175,15 +174,12 @@ mod jst_datetime {
     //        D: Deserializer<'de>
     //
     // although it may also be generic over the output types T.
-    pub fn deserialize<'de, D>(
-        deserializer: D,
-    ) -> Result<DateTime<Tz>, D::Error>
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<DateTime<Tz>, D::Error>
     where
         D: Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
-        let dt =
-         NaiveDateTime::parse_from_str(&s, FORMAT).unwrap();
+        let dt = NaiveDateTime::parse_from_str(&s, FORMAT).unwrap();
         Ok(Tokyo.from_local_datetime(&dt).unwrap())
     }
 }

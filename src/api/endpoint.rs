@@ -23,13 +23,13 @@ impl RadikoEndpoint {
     }
 
     // https://radiko.jp/v3/station/list/JP13.xml
-    pub fn get_stations_endpoint(area_id: &str) -> String{
-        format!("{}station/list/{}.xml",V3_URL,area_id)
+    pub fn get_stations_endpoint(area_id: &str) -> String {
+        format!("{}station/list/{}.xml", V3_URL, area_id)
     }
 
     // https://api.radiko.jp/program/v3/weekly/TBS.xml
-    pub fn get_weekly_programs_endpoint(station_id: &str) -> String{
-        format!("{}program/v3/weekly/{}.xml",API_URL,station_id)
+    pub fn get_weekly_programs_endpoint(station_id: &str) -> String {
+        format!("{}program/v3/weekly/{}.xml", API_URL, station_id)
     }
 
     pub fn get_stream_url_list_endpoint(station_id: &str) -> String {
@@ -93,19 +93,19 @@ mod tests {
     }
 
     #[test]
-    fn get_stations_endpoint(){
-         let area_id = "JP13";
-         assert_eq!(
-            format!("https://radiko.jp/v3/station/list/{}.xml",area_id),
+    fn get_stations_endpoint() {
+        let area_id = "JP13";
+        assert_eq!(
+            format!("https://radiko.jp/v3/station/list/{}.xml", area_id),
             RadikoEndpoint::get_stations_endpoint(area_id)
         );
     }
 
     #[test]
-    fn get_weekly_programs_endpoint(){
+    fn get_weekly_programs_endpoint() {
         let station_id = "TBS";
         assert_eq!(
-            format!("https://api.radiko.jp/program/v3/weekly/{}.xml",station_id),
+            format!("https://api.radiko.jp/program/v3/weekly/{}.xml", station_id),
             RadikoEndpoint::get_weekly_programs_endpoint(station_id)
         );
     }

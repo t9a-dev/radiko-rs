@@ -1,5 +1,5 @@
-use crate::{dto::program_xml::RadikoProgramXml, models::program::Programs};
 use crate::models::search::SearchCondition;
+use crate::{dto::program_xml::RadikoProgramXml, models::program::Programs};
 use anyhow::{Result, anyhow};
 use reqwest::Client;
 
@@ -38,12 +38,12 @@ impl RadikoProgram {
 
     pub async fn find_weekly_programs_from_station(&self, station_id: &str) -> Result<Programs> {
         let res = self
-        .http_client
-        .get(RadikoEndpoint::get_weekly_programs_endpoint(station_id))
-        .send()
-        .await?
-        .text()
-        .await?;
+            .http_client
+            .get(RadikoEndpoint::get_weekly_programs_endpoint(station_id))
+            .send()
+            .await?
+            .text()
+            .await?;
 
         let radiko_program: RadikoProgramXml = quick_xml::de::from_str(&res)?;
 
@@ -69,20 +69,21 @@ mod tests {
             .find_program_from_condition(&search_condition)
             .await?;
 
-        println!("{:#?}",result);
+        println!("{:#?}", result);
 
         assert!(result.data.len() > 0);
         Ok(())
     }
-    
+
     #[tokio::test]
-    async fn find_weekly_programs_from_station_test() -> Result<()>{
+    async fn find_weekly_programs_from_station_test() -> Result<()> {
         let station_id = "LFR";
         let radiko_program = RadikoProgram::new();
         let programs = radiko_program
-            .find_weekly_programs_from_station(station_id).await?;
+            .find_weekly_programs_from_station(station_id)
+            .await?;
 
-        println!("{}_weekly_programs: {:#?}",station_id,programs);
+        println!("{}_weekly_programs: {:#?}", station_id, programs);
 
         assert!(programs.data.len() > 0);
 
