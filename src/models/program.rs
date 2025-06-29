@@ -1,4 +1,6 @@
-use chrono::{DateTime, NaiveDateTime, TimeZone};
+use std::time::Duration;
+
+use chrono::{DateTime, NaiveDateTime, TimeDelta, TimeZone, Utc};
 use chrono_tz::{Asia::Tokyo, Tz};
 use serde_derive::{Deserialize, Serialize};
 
@@ -100,6 +102,17 @@ pub struct Programs {
     pub data: Vec<Program>,
 }
 
+impl Program {
+    pub fn get_duration_to_start_from_now(&self)-> TimeDelta {
+        let now = Utc::now().with_timezone(&Tokyo);
+        now.signed_duration_since(self.start_time)
+    }
+
+    pub fn get_duration_start_to_end(&self)-> TimeDelta {
+        self.start_time.signed_duration_since(self.end_time)
+    }
+}
+
 impl From<ProgramXml> for Program {
     fn from(value: ProgramXml) -> Self {
         let ft = Tokyo
@@ -145,6 +158,7 @@ impl From<RadikoProgramXml> for Programs {
     }
 }
 
+/// https://serde.rs/custom-date-format.html
 mod jst_datetime {
     use chrono::{DateTime, NaiveDateTime, TimeZone};
     use chrono_tz::{Asia::Tokyo, Tz};
