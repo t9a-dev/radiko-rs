@@ -18,8 +18,8 @@ impl RadikoEndpoint {
     }
 
     // https://radiko.jp/v3/api/program/search
-    pub fn get_search_endpoint() -> String{
-       format!("{}api/program/search",V3_URL)
+    pub fn get_search_endpoint() -> String {
+        format!("{}api/program/search", V3_URL)
     }
 
     pub fn get_stream_url_list_endpoint(station_id: &str) -> String {
@@ -75,8 +75,11 @@ mod tests {
     }
 
     #[test]
-    fn get_search_endpoint_test(){
-        assert_eq!("https://radiko.jp/v3/api/program/search",RadikoEndpoint::get_search_endpoint());
+    fn get_search_endpoint_test() {
+        assert_eq!(
+            "https://radiko.jp/v3/api/program/search",
+            RadikoEndpoint::get_search_endpoint()
+        );
     }
 
     #[test]
