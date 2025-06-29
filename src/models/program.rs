@@ -1,5 +1,17 @@
+
 use serde_derive::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
+use strum_macros::{AsRefStr, Display};
+
+#[derive(Debug,Clone, Copy,Display,AsRefStr,Serialize,Deserialize)]
+pub enum Filter {
+    #[strum(to_string= "future")]
+    Live,
+    #[strum(to_string= "")]
+    All,
+    #[strum(to_string= "past")]
+    TimeFree,
+}
 
 // ex: https://radiko.jp/v3/api/program/search?key=トム・ブラウン
 // ```json
@@ -23,22 +35,31 @@ use serde_with::skip_serializing_none;
 // },
 // ``` 
 #[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize,Default)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SearchCondition {
     pub key: Vec<String>,
-    pub station_id: Option<Vec<String>>,
-    pub area_id: Option<Vec<String>>,
-    pub cur_area_id: Option<String>,
-    pub region_id: Option<String>,
+    pub filter: Option<Filter>,
     pub start_day: Option<String>,
     pub end_day: Option<String>,
-    pub filter: Option<String>,
-    pub result_count: Option<i32>,
-    pub page_idx: Option<i32>,
     pub row_limit: Option<i32>,
-    pub kakuchou: Option<Vec<String>>,
-    pub suisengo: Option<String>,
-    pub genre_id: Option<Vec<String>>,
+    pub area_id: Option<Vec<String>>,
+    pub station_id: Option<Vec<String>>,
+    pub cur_area_id: Option<String>,
+}
+
+impl Default for SearchCondition{
+    fn default() -> Self {
+        Self {
+             filter: Some(Filter::Live),
+             row_limit: Some(50),
+             key: Default::default(),
+             start_day: Default::default(),
+             end_day: Default::default(),
+             area_id: Default::default(),
+             station_id: Default::default(),
+             cur_area_id: Default::default() 
+        }
+    }
 }
 
 impl SearchCondition {
@@ -65,10 +86,6 @@ impl SearchCondition {
             params.push(("cur_area_id".to_string(), cur_area_id.clone()));
         }
         
-        if let Some(region_id) = &self.region_id {
-            params.push(("region_id".to_string(), region_id.clone()));
-        }
-        
         if let Some(start_day) = &self.start_day {
             params.push(("start_day".to_string(), start_day.clone()));
         }
@@ -78,35 +95,11 @@ impl SearchCondition {
         }
         
         if let Some(filter) = &self.filter {
-            params.push(("filter".to_string(), filter.clone()));
-        }
-        
-        if let Some(result_count) = &self.result_count {
-            params.push(("result_count".to_string(), result_count.to_string()));
-        }
-        
-        if let Some(page_idx) = &self.page_idx {
-            params.push(("page_idx".to_string(), page_idx.to_string()));
+            params.push(("filter".to_string(), filter.to_string().clone()));
         }
         
         if let Some(row_limit) = &self.row_limit {
             params.push(("row_limit".to_string(), row_limit.to_string()));
-        }
-        
-        if let Some(kakuchou) = &self.kakuchou {
-            for k in kakuchou {
-                params.push(("kakuchou".to_string(), k.clone()));
-            }
-        }
-        
-        if let Some(suisengo) = &self.suisengo {
-            params.push(("suisengo".to_string(), suisengo.clone()));
-        }
-        
-        if let Some(genre_ids) = &self.genre_id {
-            for genre_id in genre_ids {
-                params.push(("genre_id".to_string(), genre_id.clone()));
-            }
         }
         
         params

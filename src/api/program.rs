@@ -1,4 +1,4 @@
-use crate::models::program::{SearchCondition, SearchResult, SearchResults};
+use crate::models::program::{SearchCondition, SearchResults};
 use anyhow::{anyhow, Result};
 use reqwest::Client;
 
@@ -12,7 +12,8 @@ impl RadikoProgram{
     pub fn new() -> Self{
         Self { http_client: Client::new() }
     }
-    pub async fn find_program(&self,condition: &SearchCondition) -> Result<SearchResults>{
+
+    pub async fn find_program_from_condition(&self,condition: &SearchCondition) -> Result<SearchResults>{
         if condition.key.is_empty(){
             return Err(anyhow!("condition key required."));
         }
@@ -27,6 +28,10 @@ impl RadikoProgram{
 
         Ok(serde_json::from_str(&res)?)
     }
+    
+    pub async fn find_program_from_station(&self,_station_id: &str) -> Result<SearchCondition>{
+        todo!()
+    }
 }
 
 #[cfg(test)]
@@ -36,15 +41,18 @@ mod tests {
     use anyhow::Result;
 
     #[tokio::test]
-    async fn find_program_test() -> Result<()> {
+    async fn find_program_from_condition_test() -> Result<()> {
         let search_condition = SearchCondition{
-            key: vec!["オールナイトニッポン".to_string()],
+            key: vec!["オールナイトニッポン".to_string(),"".to_string()],
+            station_id: Some(vec!["LFR".to_string()]),
             ..Default::default()
         };
         let radiko_program = RadikoProgram::new(); 
-        let result = radiko_program.find_program(&search_condition).await?;
+        let result = radiko_program.find_program_from_condition(&search_condition).await?;
 
-        println!("{:#?}",&result.data);
+        result.data
+        .iter()
+        .for_each(|program| println!("{}",program.title));
 
         assert!(result.data.len() > 0);
         Ok(())

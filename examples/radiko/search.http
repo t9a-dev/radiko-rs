@@ -1,5 +1,8 @@
 GET https://radiko.jp/v3/api/program/search
-    ?key=トム・ブラウン
+    ?key=オールナイトニッポン
+    &end_day=2025-07-05
+    &station_id=LFR
+    &genre_id=C009
 X-Radiko-App: pc_html5
 X-Radiko-App-Version: 0.0.1
 X-Radiko-User: dummy_user
