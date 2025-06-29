@@ -1,0 +1,275 @@
+{
+  "meta": {
+    "key": [
+      "トム・ブラウン"
+    ],
+    "station_id": [],
+    "area_id": [],
+    "cur_area_id": "",
+    "region_id": "",
+    "start_day": "",
+    "end_day": "",
+    "filter": "",
+    "result_count": 8,
+    "page_idx": 0,
+    "row_limit": 0,
+    "kakuchou": [],
+    "suisengo": "",
+    "genre_id": []
+  },
+  "data": [
+    {
+      "start_time": "2025-06-29 00:00:00",
+      "end_time": "2025-06-29 01:30:00",
+      "start_time_s": "2400",
+      "end_time_s": "2530",
+      "program_date": "20250628",
+      "program_url": "https://www.mbs1179.com/yaru/",
+      "station_id": "MBS",
+      "performer": "極楽とんぼ、河合郁人、さらば青春の光（週替わり）、トム・ブラウン（週替わり）、小沢一敬（週替わり）（スピードワゴン）、大谷映美里（=LOVE）、池田裕子",
+      "title": "アッパレやってまーす！～土曜日です～",
+      "info": "",
+      "description": "メールアドレス：\u003ca href=mailto:yarudo@mbs1179.com target=_blank\u003eyarudo@mbs1179.com\u003c/a\u003e\u003cbr /\u003e\u003cbr /\u003e\u003cbr /\u003e◆アッパレやってまーす！&#65374;土曜日です&#65374;番組サイト◆\u003cbr /\u003e☆番組ホームページ：\u003ca href='https://www.mbs1179.com/yaru/' target=_blank\u003eこちらをクリック\u003c/a\u003e\u003cbr /\u003e☆X（旧Twitter）：\u003ca href='https://twitter.com/mbs_yarudo/' target=_blank\u003e@mbs_yarudo\u003c/a\u003e",
+      "status": "past",
+      "img": "https://program-static.cf.radiko.jp/6ff0b838-2453-4734-ad79-0be88a84b425.jpeg",
+      "genre": {
+        "personality": {
+          "id": "C010",
+          "name": "タレント"
+        },
+        "program": {
+          "id": "P006",
+          "name": "バラエティ"
+        }
+      },
+      "ts_in_ng": 0,
+      "ts_out_ng": 0,
+      "tsplus_in_ng": 0,
+      "tsplus_out_ng": 0,
+      "metas": [
+        {
+          "name": "twitter",
+          "value": "#radiko"
+        }
+      ]
+    },
+    {
+      "start_time": "2025-07-06 00:00:00",
+      "end_time": "2025-07-06 01:30:00",
+      "start_time_s": "2400",
+      "end_time_s": "2530",
+      "program_date": "20250705",
+      "program_url": "https://www.mbs1179.com/yaru/",
+      "station_id": "MBS",
+      "performer": "極楽とんぼ、河合郁人、さらば青春の光（週替わり）、トム・ブラウン（週替わり）、小沢一敬（週替わり）（スピードワゴン）、大谷映美里（=LOVE）、池田裕子",
+      "title": "アッパレやってまーす！～土曜日です～",
+      "info": "",
+      "description": "メールアドレス：\u003ca href=mailto:yarudo@mbs1179.com target=_blank\u003eyarudo@mbs1179.com\u003c/a\u003e\u003cbr /\u003e\u003cbr /\u003e\u003cbr /\u003e◆アッパレやってまーす！&#65374;土曜日です&#65374;番組サイト◆\u003cbr /\u003e☆番組ホームページ：\u003ca href='https://www.mbs1179.com/yaru/' target=_blank\u003eこちらをクリック\u003c/a\u003e\u003cbr /\u003e☆X（旧Twitter）：\u003ca href='https://twitter.com/mbs_yarudo/' target=_blank\u003e@mbs_yarudo\u003c/a\u003e",
+      "status": "future",
+      "img": "https://program-static.cf.radiko.jp/6ff0b838-2453-4734-ad79-0be88a84b425.jpeg",
+      "genre": {
+        "personality": {
+          "id": "C010",
+          "name": "タレント"
+        },
+        "program": {
+          "id": "P006",
+          "name": "バラエティ"
+        }
+      },
+      "ts_in_ng": 0,
+      "ts_out_ng": 0,
+      "tsplus_in_ng": 0,
+      "tsplus_out_ng": 0,
+      "metas": [
+        {
+          "name": "twitter",
+          "value": "#radiko"
+        }
+      ]
+    },
+    {
+      "start_time": "2025-07-06 03:00:00",
+      "end_time": "2025-07-06 05:00:00",
+      "start_time_s": "2700",
+      "end_time_s": "0500",
+      "program_date": "20250705",
+      "program_url": "https://www.allnightnippon.com/zero-sat/",
+      "station_id": "TOKAIRADIO",
+      "performer": "トム・ブラウン",
+      "title": "オールナイトニッポン０",
+      "info": "\u003cbr\u003e番組へのメッセージは \u003ca href=\"mailto:nd@allnightnippon.com\"\u003end@allnightnippon.com\u003c/a\u003e\u003cbr\u003e\u003cbr\u003e番組ハッシュタグは「#ヤーレンズANN0」\n",
+      "description": "土曜も深夜3時からはオールナイトニッポン0(ZERO)！スペシャルなパーソナリティが週替わりで登場します！\u003cbr\u003e今夜は「トム・ブラウンのオールナイトニッポン 0（ZERO）」！\u003cbr\u003e",
+      "status": "future",
+      "img": "https://program-static.cf.radiko.jp/b639056c-8771-4128-a11e-8b01fedc226e.jpeg",
+      "genre": {},
+      "ts_in_ng": 0,
+      "ts_out_ng": 0,
+      "tsplus_in_ng": 0,
+      "tsplus_out_ng": 0,
+      "metas": [
+        {
+          "name": "twitter",
+          "value": "#radiko"
+        }
+      ]
+    },
+    {
+      "start_time": "2025-07-06 03:00:00",
+      "end_time": "2025-07-06 04:00:00",
+      "start_time_s": "2700",
+      "end_time_s": "2800",
+      "program_date": "20250705",
+      "program_url": "https://www.allnightnippon.com/zero-sat/",
+      "station_id": "IBC",
+      "performer": "トム・ブラウン",
+      "title": "オールナイトニッポン０（ＺＥＲＯ）",
+      "info": "Xハッシュタグは「#IBCradio」\u003cbr/\u003efacebookページは「http://www.facebook.com/IBCiwate」",
+      "description": "",
+      "status": "future",
+      "img": "https://program-static.cf.radiko.jp/95650d10-3867-4a6b-ad87-8ba6abe1975c.jpeg",
+      "genre": {
+        "personality": {
+          "id": "C010",
+          "name": "タレント"
+        },
+        "program": {
+          "id": "P007",
+          "name": "トーク"
+        }
+      },
+      "ts_in_ng": 0,
+      "ts_out_ng": 0,
+      "tsplus_in_ng": 0,
+      "tsplus_out_ng": 0,
+      "metas": [
+        {
+          "name": "twitter",
+          "value": "#radiko"
+        }
+      ]
+    },
+    {
+      "start_time": "2025-07-06 03:00:00",
+      "end_time": "2025-07-06 05:00:00",
+      "start_time_s": "2700",
+      "end_time_s": "0500",
+      "program_date": "20250705",
+      "program_url": "",
+      "station_id": "RFC",
+      "performer": "トム・ブラウン",
+      "title": "オールナイトニッポン０（ＺＥＲＯ）",
+      "info": "",
+      "description": "",
+      "status": "future",
+      "img": "https://program-static.cf.radiko.jp/9cc165d5-7478-4aed-a9b4-56537e4c9b11.jpeg",
+      "genre": {},
+      "ts_in_ng": 0,
+      "ts_out_ng": 0,
+      "tsplus_in_ng": 0,
+      "tsplus_out_ng": 0,
+      "metas": [
+        {
+          "name": "twitter",
+          "value": "#radiko"
+        }
+      ]
+    },
+    {
+      "start_time": "2025-07-06 03:00:00",
+      "end_time": "2025-07-06 05:00:00",
+      "start_time_s": "2700",
+      "end_time_s": "0500",
+      "program_date": "20250705",
+      "program_url": "https://www.allnightnippon.com/zero-sat/",
+      "station_id": "RNC",
+      "performer": "トム・ブラウン（布川ひろき　みちお）　",
+      "title": "オールナイトニッポン０（ＺＥＲＯ）",
+      "info": "スペシャルなパーソナリティが週替わりで登場する土曜日のオールナイトニッポン０、お笑いコンビ「トム・ブラウン」の二人が担当します。",
+      "description": "",
+      "status": "future",
+      "img": "https://program-static.cf.radiko.jp/7aebf0db-34b5-4a25-a6c9-670dcf621da6.jpeg",
+      "genre": {
+        "personality": {
+          "id": "C009",
+          "name": "芸人"
+        },
+        "program": {
+          "id": "P007",
+          "name": "トーク"
+        }
+      },
+      "ts_in_ng": 0,
+      "ts_out_ng": 0,
+      "tsplus_in_ng": 0,
+      "tsplus_out_ng": 0,
+      "metas": [
+        {
+          "name": "twitter",
+          "value": "#radiko"
+        }
+      ]
+    },
+    {
+      "start_time": "2025-07-06 03:00:00",
+      "end_time": "2025-07-06 05:00:00",
+      "start_time_s": "2700",
+      "end_time_s": "0500",
+      "program_date": "20250705",
+      "program_url": "https://www.allnightnippon.com/zero-sat/",
+      "station_id": "KBC",
+      "performer": "トム・ブラウン",
+      "title": "オールナイトニッポン０（ＺＥＲＯ)",
+      "info": "土曜も深夜3時からはオールナイトニッポン0(ZERO)！スペシャルなパーソナリティが週替わりで登場します！",
+      "description": "",
+      "status": "future",
+      "img": "https://program-static.cf.radiko.jp/beac8f9b-b607-421f-ab09-0e0fb23acf05.jpeg",
+      "genre": {
+        "personality": {
+          "id": "C010",
+          "name": "タレント"
+        },
+        "program": {
+          "id": "P007",
+          "name": "トーク"
+        }
+      },
+      "ts_in_ng": 0,
+      "ts_out_ng": 0,
+      "tsplus_in_ng": 0,
+      "tsplus_out_ng": 0,
+      "metas": [
+        {
+          "name": "twitter",
+          "value": "#radiko"
+        }
+      ]
+    },
+    {
+      "start_time": "2025-07-06 03:00:00",
+      "end_time": "2025-07-06 04:59:00",
+      "start_time_s": "2700",
+      "end_time_s": "2859",
+      "program_date": "20250705",
+      "program_url": "https://www.allnightnippon.com/zero-sat/",
+      "station_id": "RKK",
+      "performer": "トム・ブラウン",
+      "title": "オールナイトニッポン０（ＺＥＲＯ）",
+      "info": "▼メール　\u003cbr /\u003e\r\n\u003c!-- img:https://rkk.jp/radikoimg/edit/img20250627191322.jpg --\u003e",
+      "description": "土曜も深夜3時からはオールナイトニッポン0(ZERO)！スペシャルなパーソナリティが週替わりで登場します。\u003cbr /\u003e\r\n7月5日は、お笑いコンビ「トム・ブラウン」が担当する。\r\n",
+      "status": "future",
+      "img": "https://program-static.cf.radiko.jp/67t5i1iasb.jpg",
+      "genre": {},
+      "ts_in_ng": 0,
+      "ts_out_ng": 0,
+      "tsplus_in_ng": 0,
+      "tsplus_out_ng": 0,
+      "metas": [
+        {
+          "name": "twitter",
+          "value": "#radiko"
+        }
+      ]
+    }
+  ]
+}

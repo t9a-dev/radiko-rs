@@ -17,6 +17,11 @@ impl RadikoEndpoint {
         format!("{}api/auth2", V2_URL)
     }
 
+    // https://radiko.jp/v3/api/program/search
+    pub fn get_search_endpoint() -> String{
+       format!("{}api/program/search",V3_URL)
+    }
+
     pub fn get_stream_url_list_endpoint(station_id: &str) -> String {
         // https://radiko.jp/v3/station/stream/pc_html5/TBS.xml
         format!("{}station/stream/pc_html5/{}.xml", V3_URL, station_id)
@@ -67,6 +72,11 @@ mod tests {
             get_stream_url_list_endpoint,
             "https://radiko.jp/v3/station/stream/pc_html5/TBS.xml"
         );
+    }
+
+    #[test]
+    fn get_search_endpoint_test(){
+        assert_eq!("https://radiko.jp/v3/api/program/search",RadikoEndpoint::get_search_endpoint());
     }
 
     #[test]

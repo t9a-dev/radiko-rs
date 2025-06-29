@@ -4,3 +4,12 @@ X-Radiko-App: pc_html5
 X-Radiko-App-Version: 0.0.1
 X-Radiko-User: dummy_user
 X-Radiko-Device: pc
+
+###
+
+GET https://radiko.jp/v3/api/program/search
+    ?station_id="TBS"
+X-Radiko-App: pc_html5
+X-Radiko-App-Version: 0.0.1
+X-Radiko-User: dummy_user
+X-Radiko-Device: pc
