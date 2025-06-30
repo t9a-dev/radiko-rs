@@ -6,6 +6,7 @@ use reqwest::{Client, header::HeaderMap};
 
 use crate::api::endpoint::RadikoEndpoint;
 
+#[derive(Debug, Clone)]
 pub struct RadikoAuthManager {
     http_client: Client,
     auth_token: String,
@@ -17,11 +18,10 @@ impl RadikoAuthManager {
             http_client: Client::new(),
             auth_token: "".to_string(),
         };
-        auth_manager.auth_token = 
-            auth_manager.generate_auth_token()
+        auth_manager.auth_token = auth_manager
+            .generate_auth_token()
             .await
-            .expect("RadikoAuthManager initialize failed.")
-        ;
+            .expect("RadikoAuthManager initialize failed.");
         auth_manager
     }
 
@@ -44,7 +44,7 @@ impl RadikoAuthManager {
     }
 
     pub async fn get_auth_token(&mut self) -> Result<String> {
-        if self.auth_token.is_empty(){
+        if self.auth_token.is_empty() {
             self.generate_auth_token().await?;
         }
 
