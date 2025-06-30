@@ -2,6 +2,15 @@
 name = "radiko-rs"
 version = "0.1.0"
 edition = "2024"
+authors = ["t9a-dev"]
+description = "An unofficial Rust library for accessing Japan's radiko radio streaming service"
+documentation = "https://docs.rs/radiko-rs
+homepage = "https://github.com/t9a-dev/radiko-rs"
+repository = "https://github.com/t9a-dev/radiko-rs"
+license = "MIT OR Apache-2.0"
+keywords = ["radiko", "radio", "streaming", "japan"]
+categories = ["multimedia", "web-programming::http-client"]
+readme = "README.md"
 
 [lib]
 name = "radiko_rs"
