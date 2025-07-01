@@ -1,24 +1,34 @@
+use std::sync::Arc;
+
+use crate::client::RadikoClient;
 use crate::models::search::SearchCondition;
 use crate::{dto::program_xml::RadikoProgramXml, models::program::Programs};
 use anyhow::{Result, anyhow};
-use reqwest::Client;
 
 use super::endpoint::RadikoEndpoint;
 
 pub struct RadikoProgram {
-    http_client: Client,
+    inner: Arc<RadikoProgramRef>,
+}
+
+struct RadikoProgramRef {
+    radiko_client: RadikoClient,
 }
 
 impl RadikoProgram {
-    pub fn new() -> Self {
+    pub fn new(radiko_client: RadikoClient) -> Self {
         Self {
-            http_client: Client::new(),
+            inner: Arc::new(RadikoProgramRef {
+                radiko_client: radiko_client,
+            }),
         }
     }
 
     pub async fn get_now_on_air_programs(&self, area_id: &str) -> Result<Programs> {
         let res = self
-            .http_client
+            .inner
+            .radiko_client
+            .get_http_client()
             .get(RadikoEndpoint::get_now_on_air_programs(area_id))
             .send()
             .await?
@@ -39,7 +49,9 @@ impl RadikoProgram {
         }
 
         let res = self
-            .http_client
+            .inner
+            .radiko_client
+            .get_http_client()
             .get(RadikoEndpoint::get_search_endpoint())
             .query(&condition.to_query_params())
             .send()
@@ -52,7 +64,9 @@ impl RadikoProgram {
 
     pub async fn find_weekly_programs_from_station(&self, station_id: &str) -> Result<Programs> {
         let res = self
-            .http_client
+            .inner
+            .radiko_client
+            .get_http_client()
             .get(RadikoEndpoint::get_weekly_programs_endpoint(station_id))
             .send()
             .await?
@@ -67,14 +81,17 @@ impl RadikoProgram {
 
 #[cfg(test)]
 mod tests {
-    use crate::api::program::RadikoProgram;
+    use crate::api::{auth::RadikoAuthManager, program::RadikoProgram};
+    use crate::client::RadikoClient;
     use crate::models::search::SearchCondition;
     use anyhow::{Ok, Result};
 
     #[tokio::test]
     async fn get_now_on_air_programs_test() -> Result<()> {
         let area_id = "JP13";
-        let radiko_program = RadikoProgram::new();
+        let radiko_auth_manager = RadikoAuthManager::new().await;
+        let radiko_client = RadikoClient::new(radiko_auth_manager).await;
+        let radiko_program = RadikoProgram::new(radiko_client);
         let programs = radiko_program.get_now_on_air_programs(area_id).await?;
 
         println!("{}_now_on_air_programs: {:#?}", area_id, programs);
@@ -91,7 +108,9 @@ mod tests {
             station_id: Some(vec!["LFR".to_string()]),
             ..Default::default()
         };
-        let radiko_program = RadikoProgram::new();
+        let radiko_auth_manager = RadikoAuthManager::new().await;
+        let radiko_client = RadikoClient::new(radiko_auth_manager).await;
+        let radiko_program = RadikoProgram::new(radiko_client);
         let result = radiko_program
             .find_program_from_condition(&search_condition)
             .await?;
@@ -105,7 +124,9 @@ mod tests {
     #[tokio::test]
     async fn find_weekly_programs_from_station_test() -> Result<()> {
         let station_id = "LFR";
-        let radiko_program = RadikoProgram::new();
+        let radiko_auth_manager = RadikoAuthManager::new().await;
+        let radiko_client = RadikoClient::new(radiko_auth_manager).await;
+        let radiko_program = RadikoProgram::new(radiko_client);
         let programs = radiko_program
             .find_weekly_programs_from_station(station_id)
             .await?;

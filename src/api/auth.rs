@@ -1,32 +1,38 @@
+use std::sync::Arc;
+
 use anyhow::Result;
 
 use base64::{Engine, engine::general_purpose};
 use regex::Regex;
-use reqwest::{Client, header::HeaderMap};
+use reqwest::{
+    Client, Url,
+    cookie::{CookieStore, Jar},
+    header::HeaderMap,
+};
 
-use crate::api::endpoint::RadikoEndpoint;
+use crate::api::endpoint::{LOGIN_CHECK_URL, RadikoEndpoint};
 
 #[derive(Debug, Clone)]
 pub struct RadikoAuthManager {
+    inner: Arc<RadikoAuthManagerRef>,
+}
+
+#[derive(Debug, Clone)]
+struct RadikoAuthManagerRef {
     http_client: Client,
     auth_token: String,
+    stream_lsid: String,
+    cookie: String,
 }
 
 impl RadikoAuthManager {
     pub async fn new() -> Self {
-        let mut auth_manager = Self {
-            http_client: Client::new(),
-            auth_token: "".to_string(),
-        };
-        auth_manager.auth_token = auth_manager
-            .generate_auth_token()
-            .await
-            .expect("RadikoAuthManager initialize failed.");
-        auth_manager
+        Self::init().await.unwrap()
     }
 
     pub async fn get_area_id(&self) -> Result<String> {
         let response_body = self
+            .inner
             .http_client
             .get(RadikoEndpoint::get_area_id_endpoint())
             .send()
@@ -43,32 +49,38 @@ impl RadikoAuthManager {
         Ok(area_id.to_string())
     }
 
-    pub async fn get_auth_token(&mut self) -> Result<String> {
-        if self.auth_token.is_empty() {
-            self.generate_auth_token().await?;
-        }
-
-        Ok(self.auth_token.clone())
+    pub fn get_http_client(&self) -> Client {
+        self.inner.http_client.clone()
     }
 
-    pub async fn get_http_client_with_auth_token(&mut self) -> Result<Client> {
-        let mut headers = HeaderMap::new();
-        let token = self.get_auth_token().await?;
-
-        headers.insert("X-Radiko-Authtoken", token.parse()?);
-
-        Ok(Client::builder().default_headers(headers).build()?)
+    pub fn get_auth_token(&self) -> String {
+        self.inner.auth_token.clone()
     }
 
-    pub async fn refresh_auth_token(&mut self) -> Result<()> {
-        self.auth_token = self.generate_auth_token().await?;
-        Ok(())
+    pub fn get_lsid(&self) -> String {
+        self.inner.stream_lsid.clone()
     }
 
-    async fn generate_auth_token(&mut self) -> Result<String> {
+    pub fn get_cookie(&self) -> String {
+        self.inner.cookie.clone()
+    }
+
+    pub async fn refresh_auth(&mut self) -> Result<Self> {
+        Self::init().await
+    }
+
+    async fn init() -> Result<Self> {
         let auth1_url = RadikoEndpoint::get_auth1_endpoint();
         let auth2_url = RadikoEndpoint::get_auth2_endpoint();
         let auth_key = Self::get_public_auth_key().await;
+        let cookie_jar = Arc::new(Jar::default());
+        let client = Client::builder()
+            .cookie_provider(cookie_jar.clone())
+            .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+            .build()?;
+
+        // set-cookie radiko_session
+        let _ = client.get(LOGIN_CHECK_URL).send().await?;
 
         // auth1
         let mut headers = HeaderMap::new();
@@ -77,7 +89,6 @@ impl RadikoAuthManager {
         headers.insert("X-Radiko-User", "dummy_user".parse()?);
         headers.insert("X-Radiko-Device", "pc".parse()?);
 
-        let client = Client::new();
         let res_auth1 = client.get(auth1_url).headers(headers).send().await?;
 
         // auth2
@@ -107,15 +118,35 @@ impl RadikoAuthManager {
         headers.insert("X-Radiko-Device", "pc".parse()?);
 
         let _res_auth2 = client
-            .get(auth2_url)
+            .get(&auth2_url)
             .headers(headers.clone())
             .send()
-            .await?
-            .text()
             .await?;
 
-        self.http_client = Client::builder().default_headers(headers).build()?;
-        Ok(auth_token.to_string())
+        let radiko_session_from_cookie = cookie_jar
+            .cookies(&Url::parse(&auth2_url)?)
+            .unwrap()
+            .to_str()?
+            .to_string();
+
+        // cookieに設定されるa_expはmd5ハッシュ現在日時から適当に生成しているだけ
+        // 適当なMD5ハッシュをlsidにしてブラウザと同じエンドポイントでストリーム開けるか試す
+        // https://radiko.jp/apps/js/common.js?_=20250306
+        let lsid = crate::utils::generate_md5_hash();
+
+        let authed_client = Client::builder()
+            .default_headers(headers.clone())
+            .cookie_provider(cookie_jar.clone())
+            .build()?;
+
+        Ok(Self {
+            inner: Arc::new(RadikoAuthManagerRef {
+                http_client: authed_client,
+                auth_token: auth_token.to_string(),
+                stream_lsid: lsid,
+                cookie: radiko_session_from_cookie.to_string(),
+            }),
+        })
     }
 
     async fn get_public_auth_key() -> String {
@@ -137,11 +168,11 @@ mod tests {
     use super::*;
 
     #[tokio::test]
-    async fn get_auth_token_test() -> Result<()> {
-        let mut radiko_auth_manager = RadikoAuthManager::new().await;
-        let token = radiko_auth_manager.get_auth_token().await?;
-        println!("{}", &token);
-        assert_ne!("", &token);
+    async fn init_radiko_auth_manager_test() -> Result<()> {
+        let radiko_auth_manager = RadikoAuthManager::new().await;
+
+        println!("radiko_auth_manager: {:#?}", radiko_auth_manager);
+
         Ok(())
     }
 }

@@ -2,6 +2,8 @@ const V2_URL: &str = "https://radiko.jp/v2/";
 const V3_URL: &str = "https://radiko.jp/v3/";
 const API_URL: &str = "https://api.radiko.jp/";
 const AREA_URL: &str = "https://radiko.jp/area/";
+/// radiko_session取得に利用
+pub const LOGIN_CHECK_URL: &str = "https://radiko.jp/ap/member/webapi/v2/member/login/check";
 
 pub struct RadikoEndpoint {}
 
@@ -44,18 +46,21 @@ impl RadikoEndpoint {
 
     /// HLSストリーミングのMasterPlaylist.m3u8を返すエンドポイントを取得
     /// radikoによる仕様変更時にはエンドポイント自体が変更されたり、クエリパラメータが変更される模様
-    pub fn get_playlist_create_url_endpoint(station_id: &str) -> String {
+    pub fn get_playlist_create_url_endpoint(station_id: &str, lsid: &str) -> String {
         // https://si-f-radiko.smartstream.ne.jp/so/playlist.m3u8?station_id=TBS&l=15&lsid=&type=b
         format!(
-            "https://si-f-radiko.smartstream.ne.jp/so/playlist.m3u8?station_id={}&l=15&lsid=&type=b",
-            station_id
+            "https://si-f-radiko.smartstream.ne.jp/so/playlist.m3u8?station_id={}&l=15&lsid={}&type=b",
+            station_id, lsid
         )
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::api::endpoint::RadikoEndpoint;
+    use crate::{
+        api::{auth::RadikoAuthManager, endpoint::RadikoEndpoint},
+        client::RadikoClient,
+    };
 
     #[test]
     fn get_area_id_endpoint_test() {
@@ -122,12 +127,14 @@ mod tests {
     #[test]
     fn get_playlist_create_url_endpoint_test() {
         let station_id = "TBS";
-        let playlist_crate_url = RadikoEndpoint::get_playlist_create_url_endpoint(station_id);
+        let lsid = crate::utils::generate_md5_hash();
+        let playlist_crate_url =
+            RadikoEndpoint::get_playlist_create_url_endpoint(station_id, &lsid);
         assert_eq!(
             playlist_crate_url,
             format!(
-                "https://si-f-radiko.smartstream.ne.jp/so/playlist.m3u8?station_id={}&l=15&lsid=&type=b",
-                station_id
+                "https://si-f-radiko.smartstream.ne.jp/so/playlist.m3u8?station_id={}&l=15&lsid={}&type=b",
+                station_id, lsid
             )
         )
     }
