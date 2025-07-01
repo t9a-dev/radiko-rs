@@ -59,7 +59,7 @@ mod tests {
 
         println!("{}_stations: {:#?}", area_id, stations);
 
-        assert!(stations.data.len() > 0);
+        assert!(!stations.data.is_empty());
         assert_eq!(stations.area_id, area_id);
         Ok(())
     }

@@ -1,4 +1,4 @@
-use std::{rc::Rc, sync::Arc};
+use std::sync::Arc;
 
 use anyhow::Result;
 use reqwest::Client;
@@ -57,17 +57,15 @@ impl RadikoStream {
 #[cfg(test)]
 mod tests {
     use crate::api::auth::RadikoAuthManager;
-    use crate::api::stream::RadikoStream;
     use crate::client::RadikoClient;
     use anyhow::Result;
-    use reqwest::Client;
+    
 
     #[tokio::test]
     async fn valid_stream_url_test() -> Result<()> {
         let station_id = "TBS";
         let radiko_auth_manager = RadikoAuthManager::new().await;
         let radiko_client = RadikoClient::new(radiko_auth_manager.clone()).await;
-        let radiko_stream = RadikoStream::new(station_id, radiko_client.clone());
 
         println!("radiko_auth_manager: {:#?}", radiko_auth_manager);
         println!("area_id: {}", radiko_client.get_area_id());

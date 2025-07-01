@@ -57,10 +57,7 @@ impl RadikoEndpoint {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        api::{auth::RadikoAuthManager, endpoint::RadikoEndpoint},
-        client::RadikoClient,
-    };
+    use crate::api::endpoint::RadikoEndpoint;
 
     #[test]
     fn get_area_id_endpoint_test() {

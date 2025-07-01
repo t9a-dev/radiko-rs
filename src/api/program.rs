@@ -19,7 +19,7 @@ impl RadikoProgram {
     pub fn new(radiko_client: RadikoClient) -> Self {
         Self {
             inner: Arc::new(RadikoProgramRef {
-                radiko_client: radiko_client,
+                radiko_client,
             }),
         }
     }
@@ -96,7 +96,7 @@ mod tests {
 
         println!("{}_now_on_air_programs: {:#?}", area_id, programs);
 
-        assert!(programs.data.len() > 0);
+        assert!(!programs.data.is_empty());
 
         Ok(())
     }
@@ -117,7 +117,7 @@ mod tests {
 
         println!("{:#?}", result);
 
-        assert!(result.data.len() > 0);
+        assert!(!result.data.is_empty());
         Ok(())
     }
 
@@ -133,7 +133,7 @@ mod tests {
 
         println!("{}_weekly_programs: {:#?}", station_id, programs);
 
-        assert!(programs.data.len() > 0);
+        assert!(!programs.data.is_empty());
 
         Ok(())
     }
