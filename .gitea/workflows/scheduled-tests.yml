@@ -38,7 +38,15 @@ jobs:
         path: target
         key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
         
+    - name: Cache ffmpeg
+      uses: actions/cache@v3
+      id: cache-ffmpeg
+      with:
+        path: /usr/bin/ffmpeg
+        key: ${{ runner.os }}-ffmpeg-${{ hashFiles('/etc/apt/sources.list*') }}
+        
     - name: Install ffmpeg
+      if: steps.cache-ffmpeg.outputs.cache-hit != 'true'
       run: |
         sudo apt-get update
         sudo apt-get install -y ffmpeg
