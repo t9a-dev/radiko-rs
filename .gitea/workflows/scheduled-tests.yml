@@ -55,3 +55,10 @@ jobs:
       run: cargo test
       env:
         RUST_BACKTRACE: 1
+    
+    - name: Create issue on failure
+      if: ${{ failure() }}
+      uses: dacbd/create-issue-action@main
+      with:
+        title: failed scheduled action
+        token: ${{ secrets.CREATE_ISSUE_TOKEN }}
