@@ -12,6 +12,9 @@ use reqwest::{
 
 use crate::api::endpoint::{LOGIN_CHECK_URL, RadikoEndpoint};
 
+pub const USER_AGENT_VALUE: &str =
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:140.0) Gecko/20100101 Firefox/140.0";
+
 #[derive(Debug, Clone)]
 pub struct RadikoAuthManager {
     inner: Arc<RadikoAuthManagerRef>,
@@ -19,6 +22,7 @@ pub struct RadikoAuthManager {
 
 #[derive(Debug, Clone)]
 struct RadikoAuthManagerRef {
+    area_id: String,
     http_client: Client,
     auth_token: String,
     stream_lsid: String,
@@ -30,23 +34,8 @@ impl RadikoAuthManager {
         Self::init().await.unwrap()
     }
 
-    pub async fn get_area_id(&self) -> Result<String> {
-        let response_body = self
-            .inner
-            .http_client
-            .get(RadikoEndpoint::get_area_id_endpoint())
-            .send()
-            .await?
-            .text()
-            .await?;
-
-        let area_id_pattern = Regex::new(r"[A-Z]{2}[0-9]{2}")?;
-        let Some(area_id_caps) = area_id_pattern.captures(&response_body) else {
-            panic!("not found pattern area_id");
-        };
-        let area_id = &area_id_caps[0];
-
-        Ok(area_id.to_string())
+    pub fn get_area_id(&self) -> String {
+        self.inner.area_id.clone()
     }
 
     pub fn get_http_client(&self) -> Client {
@@ -65,6 +54,47 @@ impl RadikoAuthManager {
         self.inner.cookie.clone()
     }
 
+    pub fn get_headers_string_value(&self) -> String {
+        let auth_token = self.get_auth_token();
+        let area_id = self.get_area_id();
+        let lsid = self.get_lsid();
+        let radiko_session = self.get_cookie();
+        format!(
+            "{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}",
+            "Accept: */*\r\n",
+            "Accept-Encoding: gzip, deflate, br, zstd\r\n",
+            "Accept-Language: ja,en-US;q=0.7,en;q=0.3\r\n",
+            "DNT: 1\r\n",
+            "Priority: u=0, i\r\n",
+            "X-Radiko-Authtoken: ",
+            auth_token,
+            "\r\n",
+            "X-Radiko-Areaid: ",
+            area_id,
+            "\r\n",
+            // "User-Agent: ",
+            // USER_AGENT,
+            // "\r\n",
+            "Origin: https://radiko.jp\r\n",
+            "Referer: https://radiko.jp/\r\n",
+            "Sec-Fetch-Dest: empty\r\n",
+            "Sec-Fetch-Mode: cors\r\n",
+            "Sec-Fetch-Site: cross-site\r\n",
+            "Sec-Fetch-GPC: 1\r\n",
+            "Upgrade-Insecure-Requests: 1\r\n",
+            "Cookie: a_exp:",
+            lsid,
+            ";",
+            "radiko-policy-accept:",
+            "2024-10-04T00%3A00%3A00%2B09%3A00",
+            ";",
+            radiko_session,
+            ";",
+            "rdk_profile_data:{\"gender_code\":\"0\",\"birth_month\":\"202501\"};",
+            "store_version:3;"
+        )
+    }
+
     pub async fn refresh_auth(&mut self) -> Result<Self> {
         Self::init().await
     }
@@ -78,6 +108,20 @@ impl RadikoAuthManager {
             .cookie_provider(cookie_jar.clone())
             .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
             .build()?;
+
+        // get area_id
+        let response_body = client
+            .get(RadikoEndpoint::get_area_id_endpoint())
+            .send()
+            .await?
+            .text()
+            .await?;
+
+        let area_id_pattern = Regex::new(r"[A-Z]{2}[0-9]{2}")?;
+        let Some(area_id_caps) = area_id_pattern.captures(&response_body) else {
+            panic!("not found pattern area_id");
+        };
+        let area_id = &area_id_caps[0];
 
         // set-cookie radiko_session
         let _ = client.get(LOGIN_CHECK_URL).send().await?;
@@ -141,6 +185,7 @@ impl RadikoAuthManager {
 
         Ok(Self {
             inner: Arc::new(RadikoAuthManagerRef {
+                area_id: area_id.to_string(),
                 http_client: authed_client,
                 auth_token: auth_token.to_string(),
                 stream_lsid: lsid,
@@ -172,6 +217,10 @@ mod tests {
         let radiko_auth_manager = RadikoAuthManager::new().await;
 
         println!("radiko_auth_manager: {:#?}", radiko_auth_manager);
+        println!(
+            "get_headers_string_value: {:#?}",
+            radiko_auth_manager.get_headers_string_value()
+        );
 
         Ok(())
     }

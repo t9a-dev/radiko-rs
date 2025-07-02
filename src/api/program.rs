@@ -18,9 +18,7 @@ struct RadikoProgramRef {
 impl RadikoProgram {
     pub fn new(radiko_client: RadikoClient) -> Self {
         Self {
-            inner: Arc::new(RadikoProgramRef {
-                radiko_client,
-            }),
+            inner: Arc::new(RadikoProgramRef { radiko_client }),
         }
     }
 
