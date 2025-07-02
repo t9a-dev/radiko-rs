@@ -4,11 +4,7 @@ use anyhow::Result;
 
 use base64::{Engine, engine::general_purpose};
 use regex::Regex;
-use reqwest::{
-    Client, Url,
-    cookie::{CookieStore, Jar},
-    header::HeaderMap,
-};
+use reqwest::{Client, cookie::Jar, header::HeaderMap};
 
 use crate::api::endpoint::{LOGIN_CHECK_URL, RadikoEndpoint};
 
@@ -26,7 +22,6 @@ struct RadikoAuthManagerRef {
     http_client: Client,
     auth_token: String,
     stream_lsid: String,
-    cookie: String,
 }
 
 impl RadikoAuthManager {
@@ -48,51 +43,6 @@ impl RadikoAuthManager {
 
     pub fn get_lsid(&self) -> String {
         self.inner.stream_lsid.clone()
-    }
-
-    pub fn get_cookie(&self) -> String {
-        self.inner.cookie.clone()
-    }
-
-    pub fn get_headers_string_value(&self) -> String {
-        let auth_token = self.get_auth_token();
-        let area_id = self.get_area_id();
-        let lsid = self.get_lsid();
-        let radiko_session = self.get_cookie();
-        format!(
-            "{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}",
-            "Accept: */*\r\n",
-            "Accept-Encoding: gzip, deflate, br, zstd\r\n",
-            "Accept-Language: ja,en-US;q=0.7,en;q=0.3\r\n",
-            "DNT: 1\r\n",
-            "Priority: u=0, i\r\n",
-            "X-Radiko-Authtoken: ",
-            auth_token,
-            "\r\n",
-            "X-Radiko-Areaid: ",
-            area_id,
-            "\r\n",
-            // "User-Agent: ",
-            // USER_AGENT,
-            // "\r\n",
-            "Origin: https://radiko.jp\r\n",
-            "Referer: https://radiko.jp/\r\n",
-            "Sec-Fetch-Dest: empty\r\n",
-            "Sec-Fetch-Mode: cors\r\n",
-            "Sec-Fetch-Site: cross-site\r\n",
-            "Sec-Fetch-GPC: 1\r\n",
-            "Upgrade-Insecure-Requests: 1\r\n",
-            "Cookie: a_exp:",
-            lsid,
-            ";",
-            "radiko-policy-accept:",
-            "2024-10-04T00%3A00%3A00%2B09%3A00",
-            ";",
-            radiko_session,
-            ";",
-            "rdk_profile_data:{\"gender_code\":\"0\",\"birth_month\":\"202501\"};",
-            "store_version:3;"
-        )
     }
 
     pub async fn refresh_auth(&mut self) -> Result<Self> {
@@ -167,12 +117,6 @@ impl RadikoAuthManager {
             .send()
             .await?;
 
-        let radiko_session_from_cookie = cookie_jar
-            .cookies(&Url::parse(&auth2_url)?)
-            .unwrap()
-            .to_str()?
-            .to_string();
-
         // cookieに設定されるa_expはmd5ハッシュ現在日時から適当に生成しているだけ
         // 適当なMD5ハッシュをlsidにしてブラウザと同じエンドポイントでストリーム開けるか試す
         // https://radiko.jp/apps/js/common.js?_=20250306
@@ -189,7 +133,6 @@ impl RadikoAuthManager {
                 http_client: authed_client,
                 auth_token: auth_token.to_string(),
                 stream_lsid: lsid,
-                cookie: radiko_session_from_cookie.to_string(),
             }),
         })
     }
@@ -217,10 +160,6 @@ mod tests {
         let radiko_auth_manager = RadikoAuthManager::new().await;
 
         println!("radiko_auth_manager: {:#?}", radiko_auth_manager);
-        println!(
-            "get_headers_string_value: {:#?}",
-            radiko_auth_manager.get_headers_string_value()
-        );
 
         Ok(())
     }

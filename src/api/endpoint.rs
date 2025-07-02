@@ -50,18 +50,14 @@ impl RadikoEndpoint {
         // https://si-f-radiko.smartstream.ne.jp/so/playlist.m3u8?station_id=TBS&l=15&lsid=&type=b
         format!(
             "https://si-f-radiko.smartstream.ne.jp/so/playlist.m3u8?station_id={}&l=15&lsid={}&type=b",
-            station_id,
-            lsid
+            station_id, lsid
         )
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        api::{auth::RadikoAuthManager, endpoint::RadikoEndpoint},
-        client::RadikoClient,
-    };
+    use crate::api::endpoint::RadikoEndpoint;
 
     #[test]
     fn get_area_id_endpoint_test() {
