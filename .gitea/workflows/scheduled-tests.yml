@@ -10,11 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: addnab/docker-run-action@v3
+    - name: cargo test on docker
+      uses: addnab/docker-run-action@v3
       with:
-        registry: gcr.io
-        image: t9a-dev/run-cargo-test:latest
-        run: echo "run cargo-test"
+        image: ghcr.io/t9a-dev/run-cargo-test:latest
     
     - name: Create issue on failure
       if: ${{ failure() }}
