@@ -1,0 +1,18 @@
+# GiteaサーバーのActionsで定期実行するのに利用
+# apt-get install ffmpegでたまにエラーになってフレーキーテストになるので。
+FROM rust:latest
+
+LABEL org.opencontainers.image.source=https://github.com/t9a-dev/radiko-rs
+
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY Cargo.toml Cargo.lock ./
+COPY src ./src
+
+RUN cargo build
+
+ENTRYPOINT ["cargo", "test"]
