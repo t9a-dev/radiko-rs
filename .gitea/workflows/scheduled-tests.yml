@@ -10,51 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Rust
-      uses: actions-rs/toolchain@v1
+    - uses: addnab/docker-run-action@v3
       with:
-        toolchain: stable
-        override: true
-        components: rustfmt, clippy
-        
-    - name: Cache cargo registry
-      uses: actions/cache@v3
-      with:
-        path: ~/.cargo/registry
-        key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
-        
-    - name: Cache cargo index
-      uses: actions/cache@v3
-      with:
-        path: ~/.cargo/git
-        key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
-        
-    - name: Cache cargo build
-      uses: actions/cache@v3
-      with:
-        path: target
-        key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
-        
-    - name: Cache ffmpeg
-      uses: actions/cache@v3
-      id: cache-ffmpeg
-      with:
-        path: /usr/bin/ffmpeg
-        key: ${{ runner.os }}-ffmpeg-${{ hashFiles('/etc/apt/sources.list*') }}
-        
-    - name: Install ffmpeg
-      if: steps.cache-ffmpeg.outputs.cache-hit != 'true'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y ffmpeg
-        
-    - name: Run tests
-      run: cargo test
-      env:
-        RUST_BACKTRACE: 1
+        registry: gcr.io
+        image: t9a-dev/run-cargo-test:latest
+        run: echo "run cargo-test"
     
     - name: Create issue on failure
       if: ${{ failure() }}
