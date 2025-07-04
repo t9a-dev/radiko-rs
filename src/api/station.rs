@@ -29,7 +29,7 @@ impl RadikoStation {
             .inner
             .client
             .get_http_client()
-            .get(RadikoEndpoint::get_station_list_endpoint(area_id))
+            .get(RadikoEndpoint::station_list_endpoint(area_id))
             .send()
             .await?
             .text()

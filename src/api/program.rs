@@ -27,7 +27,7 @@ impl RadikoProgram {
             .inner
             .radiko_client
             .get_http_client()
-            .get(RadikoEndpoint::get_now_on_air_programs(area_id))
+            .get(RadikoEndpoint::now_on_air_programs(area_id))
             .send()
             .await?
             .text()
@@ -50,7 +50,7 @@ impl RadikoProgram {
             .inner
             .radiko_client
             .get_http_client()
-            .get(RadikoEndpoint::get_search_endpoint())
+            .get(RadikoEndpoint::search_endpoint())
             .query(&condition.to_query_params())
             .send()
             .await?
@@ -65,7 +65,7 @@ impl RadikoProgram {
             .inner
             .radiko_client
             .get_http_client()
-            .get(RadikoEndpoint::get_weekly_programs_endpoint(station_id))
+            .get(RadikoEndpoint::weekly_programs_endpoint(station_id))
             .send()
             .await?
             .text()

@@ -1,4 +1,4 @@
-use std::{convert::TryFrom, io::Write, sync::Arc};
+use std::{borrow::Cow, convert::TryFrom, io::Write, sync::Arc};
 
 use anyhow::{Result, anyhow};
 use hls_m3u8::MasterPlaylist;
@@ -25,37 +25,39 @@ impl RadikoStream {
             inner: Arc::new(RadikoStreamRef {
                 station_id: station_id.to_string(),
                 radiko_client: radiko_client.clone(),
-                stream_url: RadikoEndpoint::get_playlist_create_url_endpoint(
+                stream_url: RadikoEndpoint::playlist_create_url_endpoint(
                     station_id,
-                    &radiko_client.get_auth_manager().get_lsid(),
+                    &radiko_client.get_auth_manager().lsid(),
                 ),
             }),
         }
     }
 
-    pub fn get_station_id(&self) -> String {
-        self.inner.station_id.clone()
+    pub fn station_id(&self) -> Cow<str> {
+        Cow::Borrowed(&self.inner.station_id) 
     }
 
-    pub fn get_http_client(&self) -> Client {
+    pub fn http_client(&self) -> Client {
         self.inner.radiko_client.get_http_client()
     }
 
-    pub async fn get_hls_master_playlist(&self) -> Result<String> {
+    pub fn stream_url(&self) -> Cow<str> {
+        Cow::Borrowed(&self.inner.stream_url)
+    }
+
+    pub async fn get_hls_master_playlist_content(&self) -> Result<Cow<str>> {
         Ok(self
-            .get_http_client()
+            .http_client()
             .get(&self.inner.stream_url)
             .send()
             .await?
             .text()
-            .await?)
+            .await?
+            .into()
+        )
     }
 
-    pub fn get_stream_url(&self) -> &str {
-        &self.inner.stream_url
-    }
-
-    pub fn extract_medialist_url(&self, master_playlist_content: &str) -> Result<String> {
+    pub fn extract_medialist_url(&self, master_playlist_content: &str) -> Result<Cow<str>> {
         let master_playlist = MasterPlaylist::try_from(master_playlist_content)?;
         Ok(master_playlist
             .variant_streams
@@ -65,13 +67,13 @@ impl RadikoStream {
             .and_then(|stream| match stream {
                 hls_m3u8::tags::VariantStream::ExtXStreamInf { uri, .. } => Ok(uri.to_string()),
                 _ => Err(anyhow!("Invalid stream type")),
-            })?)
+            })?.into())
     }
 
     pub async fn download_playlist_to_tempfile(&self) -> Result<NamedTempFile> {
         let playlist_content = self
-            .get_http_client()
-            .get(self.get_stream_url())
+            .http_client()
+            .get(self.stream_url().as_ref())
             .send()
             .await?
             .bytes()
@@ -106,7 +108,7 @@ mod tests {
         let radiko_client = RadikoClient::new(radiko_auth_manager.clone()).await;
         let radiko_stream = RadikoStream::new(station_id, radiko_client.clone());
 
-        let master_playlist_content = radiko_stream.get_hls_master_playlist().await?;
+        let master_playlist_content = radiko_stream.get_hls_master_playlist_content().await?;
         let segment_uri = radiko_stream.extract_medialist_url(&master_playlist_content)?;
 
         println!("parsed_uri: {}", segment_uri);
@@ -125,7 +127,7 @@ mod tests {
         println!("area_id: {}", radiko_client.get_area_id());
         println!("station_id: {}", station_id);
 
-        run_ffmpeg_command_stream(radiko_stream, &radiko_auth_manager.get_auth_token()).await?;
+        run_ffmpeg_command_stream(radiko_stream, &radiko_auth_manager.auth_token()).await?;
 
         Ok(())
     }
@@ -134,7 +136,7 @@ mod tests {
         radiko_stream: RadikoStream,
         radiko_auth_token: &str,
     ) -> Result<()> {
-        let strem_url = radiko_stream.get_stream_url();
+        let strem_url = radiko_stream.stream_url();
 
         let cmd = Command::new("ffmpeg")
             .args([
@@ -153,7 +155,7 @@ mod tests {
                 "-f",
                 "hls",
                 "-i",
-                strem_url,
+                &strem_url,
                 "-reconnect",
                 "3",
                 "-reconnect_at_eof",

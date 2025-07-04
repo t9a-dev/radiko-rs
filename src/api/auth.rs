@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{borrow::Cow, sync::Arc};
 
 use anyhow::Result;
 
@@ -29,20 +29,20 @@ impl RadikoAuthManager {
         Self::init().await.unwrap()
     }
 
-    pub fn get_area_id(&self) -> String {
-        self.inner.area_id.clone()
+    pub fn area_id(&self) -> Cow<str> {
+        Cow::Borrowed(&self.inner.area_id)
     }
 
-    pub fn get_http_client(&self) -> Client {
+    pub fn http_client(&self) -> Client {
         self.inner.http_client.clone()
     }
 
-    pub fn get_auth_token(&self) -> String {
-        self.inner.auth_token.clone()
+    pub fn auth_token(&self) -> Cow<str> {
+        Cow::Borrowed(&self.inner.auth_token)
     }
 
-    pub fn get_lsid(&self) -> String {
-        self.inner.stream_lsid.clone()
+    pub fn lsid(&self) -> Cow<str> {
+        Cow::Borrowed(&self.inner.stream_lsid)
     }
 
     pub async fn refresh_auth(&mut self) -> Result<Self> {
@@ -50,8 +50,8 @@ impl RadikoAuthManager {
     }
 
     async fn init() -> Result<Self> {
-        let auth1_url = RadikoEndpoint::get_auth1_endpoint();
-        let auth2_url = RadikoEndpoint::get_auth2_endpoint();
+        let auth1_url = RadikoEndpoint::auth1_endpoint();
+        let auth2_url = RadikoEndpoint::auth2_endpoint();
         let auth_key = Self::get_public_auth_key().await;
         let cookie_jar = Arc::new(Jar::default());
         let client = Client::builder()
@@ -61,7 +61,7 @@ impl RadikoAuthManager {
 
         // get area_id
         let response_body = client
-            .get(RadikoEndpoint::get_area_id_endpoint())
+            .get(RadikoEndpoint::area_id_endpoint())
             .send()
             .await?
             .text()

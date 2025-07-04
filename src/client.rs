@@ -21,8 +21,8 @@ impl RadikoClient {
         Self {
             inner: Arc::new(RadikoClientRef {
                 auth_manager: radiko_auth_manager.clone(),
-                http_client: radiko_auth_manager.get_http_client(),
-                area_id: radiko_auth_manager.get_area_id(),
+                http_client: radiko_auth_manager.http_client(),
+                area_id: radiko_auth_manager.area_id().to_string(),
             }),
         }
     }
