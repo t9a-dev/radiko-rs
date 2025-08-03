@@ -135,4 +135,35 @@ mod tests {
 
         Ok(())
     }
+
+    #[tokio::test]
+    async fn program_duration_methods_test() -> Result<()> {
+        let station_id = "LFR";
+        let radiko_auth_manager = RadikoAuthManager::new().await;
+        let radiko_client = RadikoClient::new(radiko_auth_manager).await;
+        let radiko_program = RadikoProgram::new(radiko_client);
+        let programs = radiko_program
+            .find_weekly_programs_from_station(station_id)
+            .await?;
+        let program_len = programs.data.len();
+        let target_program = programs.data[program_len - 150].clone();
+
+        println!("program: {:#?}", target_program);
+
+        println!(
+            "now2start_time num_secs: {:#?}",
+            target_program
+                .get_duration_to_start_from_now()
+                .num_seconds()
+        );
+
+        println!(
+            "start2end secs: {:#?}",
+            target_program.get_duration_start_to_end()
+        );
+
+        assert!(!programs.data.is_empty());
+
+        Ok(())
+    }
 }
