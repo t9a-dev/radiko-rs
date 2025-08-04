@@ -27,15 +27,15 @@ impl RadikoClient {
         }
     }
 
-    pub fn get_auth_manager(&self) -> RadikoAuthManager {
+    pub fn auth_manager(&self) -> RadikoAuthManager {
         self.inner.auth_manager.clone()
     }
 
-    pub fn get_area_id(&self) -> String {
+    pub fn area_id(&self) -> String {
         self.inner.area_id.clone()
     }
 
-    pub fn get_http_client(&self) -> Client {
+    pub fn http_client(&self) -> Client {
         self.inner.http_client.clone()
     }
 }

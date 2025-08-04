@@ -1,12 +1,17 @@
-use std::{borrow::Cow, sync::Arc};
+use std::{borrow::Cow, collections::HashMap, str::FromStr, sync::Arc};
 
-use anyhow::Result;
+use anyhow::{Result, anyhow};
 
 use base64::{Engine, engine::general_purpose};
 use regex::Regex;
-use reqwest::{Client, cookie::Jar, header::HeaderMap};
+use reqwest::{
+    Client, Url,
+    cookie::{self, Jar},
+    header::HeaderMap,
+};
+use serde::{Deserialize, Serialize};
 
-use crate::api::endpoint::{LOGIN_CHECK_URL, RadikoEndpoint};
+use crate::api::endpoint::RadikoEndpoint;
 
 pub const USER_AGENT_VALUE: &str =
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:140.0) Gecko/20100101 Firefox/140.0";
@@ -22,11 +27,32 @@ struct RadikoAuthManagerRef {
     http_client: Client,
     auth_token: String,
     stream_lsid: String,
+    mail: Option<String>,
+    pass: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct LoginResponse {
+    twitter_name: Option<String>,
+    status: String,
+    unpaid: String,
+    radiko_session: String,
+    areafree: String,
+    member_ukey: String,
+    facebook_name: Option<String>,
+    privileges: Vec<String>,
+    paid_member: String,
 }
 
 impl RadikoAuthManager {
     pub async fn new() -> Self {
-        Self::init().await.unwrap()
+        Self::init(None, None).await.unwrap()
+    }
+
+    pub async fn new_area_free(mail: &str, pass: &str) -> Self {
+        Self::init(Some(mail.to_string()), Some(pass.to_string()))
+            .await
+            .unwrap()
     }
 
     pub fn area_id(&self) -> Cow<str> {
@@ -46,21 +72,29 @@ impl RadikoAuthManager {
     }
 
     pub async fn refresh_auth(&mut self) -> Result<Self> {
-        Self::init().await
+        Self::init(self.inner.mail.clone(), self.inner.pass.clone()).await
     }
 
-    async fn init() -> Result<Self> {
+    async fn init(mail: Option<String>, pass: Option<String>) -> Result<Self> {
+        let is_area_free = mail.is_some() && pass.is_some();
         let auth1_url = RadikoEndpoint::auth1_endpoint();
         let auth2_url = RadikoEndpoint::auth2_endpoint();
         let auth_key = Self::get_public_auth_key().await;
-        let cookie_jar = Arc::new(Jar::default());
-        let client = Client::builder()
-            .cookie_provider(cookie_jar.clone())
+
+        // login
+        let cookie: Arc<cookie::Jar> = if is_area_free {
+            RadikoAuthManager::login(&mail.clone().unwrap(), &pass.clone().unwrap()).await?
+        } else {
+            Arc::new(Jar::default())
+        };
+
+        let logined_client = Client::builder()
             .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+            .cookie_provider(cookie.clone())
             .build()?;
 
         // get area_id
-        let response_body = client
+        let response_body = logined_client
             .get(RadikoEndpoint::area_id_endpoint())
             .send()
             .await?
@@ -73,9 +107,6 @@ impl RadikoAuthManager {
         };
         let area_id = &area_id_caps[0];
 
-        // set-cookie radiko_session
-        let _ = client.get(LOGIN_CHECK_URL).send().await?;
-
         // auth1
         let mut headers = HeaderMap::new();
         headers.insert("X-Radiko-App", "pc_html5".parse()?);
@@ -83,7 +114,11 @@ impl RadikoAuthManager {
         headers.insert("X-Radiko-User", "dummy_user".parse()?);
         headers.insert("X-Radiko-Device", "pc".parse()?);
 
-        let res_auth1 = client.get(auth1_url).headers(headers).send().await?;
+        let res_auth1 = logined_client
+            .get(auth1_url)
+            .headers(headers)
+            .send()
+            .await?;
 
         // auth2
         let auth_token = res_auth1
@@ -111,21 +146,24 @@ impl RadikoAuthManager {
         headers.insert("X-Radiko-User", "dummy_user".parse()?);
         headers.insert("X-Radiko-Device", "pc".parse()?);
 
-        let _res_auth2 = client
+        let res_auth2 = logined_client
             .get(&auth2_url)
             .headers(headers.clone())
             .send()
             .await?;
+        if !res_auth2.status().is_success() {
+            return Err(anyhow!("error auth2 request: {}", res_auth2.text().await?));
+        }
+
+        let authed_client = Client::builder()
+            .cookie_provider(cookie)
+            .default_headers(headers)
+            .build()?;
 
         // cookieに設定されるa_expはmd5ハッシュ現在日時から適当に生成しているだけ
         // 適当なMD5ハッシュをlsidにしてブラウザと同じエンドポイントでストリーム開けるか試す
         // https://radiko.jp/apps/js/common.js?_=20250306
         let lsid = crate::utils::generate_md5_hash();
-
-        let authed_client = Client::builder()
-            .default_headers(headers.clone())
-            .cookie_provider(cookie_jar.clone())
-            .build()?;
 
         Ok(Self {
             inner: Arc::new(RadikoAuthManagerRef {
@@ -133,6 +171,8 @@ impl RadikoAuthManager {
                 http_client: authed_client,
                 auth_token: auth_token.to_string(),
                 stream_lsid: lsid,
+                mail: mail,
+                pass: pass,
             }),
         })
     }
@@ -149,11 +189,58 @@ impl RadikoAuthManager {
 
         auth_key_caps["auth_key"].to_string()
     }
+
+    async fn login(mail: &str, pass: &str) -> Result<Arc<cookie::Jar>> {
+        let mut login_info = HashMap::new();
+        login_info.insert("mail", mail);
+        login_info.insert("pass", pass);
+        let login_res: LoginResponse = Client::new()
+            .post(RadikoEndpoint::login_endpoint())
+            .form(&login_info)
+            .send()
+            .await?
+            .json()
+            .await?;
+        // ログインエンドポイントのレスポンスヘッダーのSet-Cookieに指定されているradiko-sessionはダミーのようで、
+        // レスポンスボディに含まれているradiko_sessionの値を利用する必要がある
+        let cookie = format!("radiko_session={}", login_res.radiko_session);
+        let jar = Arc::new(Jar::default());
+        jar.add_cookie_str(&cookie, &Url::from_str(RadikoEndpoint::RADIKO_HOST)?);
+
+        let login_check_res = Client::builder()
+            .cookie_provider(jar.clone())
+            .build()?
+            .get(RadikoEndpoint::LOGIN_CHECK_URL)
+            .send()
+            .await?;
+
+        if !login_check_res.status().is_success() {
+            return Err(anyhow!(
+                "login check failed: {}",
+                login_check_res.text().await?
+            ));
+        }
+
+        Ok(jar)
+    }
 }
 
 #[cfg(test)]
 mod tests {
+    use dotenvy::dotenv;
+
     use super::*;
+    use std::env;
+
+    #[tokio::test]
+    async fn login_process_test() -> Result<()> {
+        dotenv()?;
+        let mail = env::var("mail").expect("failed mail from dotenv");
+        let pass = env::var("pass").expect("failed pass from dotenv");
+        let _ = RadikoAuthManager::login(&mail, &pass).await?;
+
+        Ok(())
+    }
 
     #[tokio::test]
     async fn init_radiko_auth_manager_test() -> Result<()> {

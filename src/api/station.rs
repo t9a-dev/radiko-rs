@@ -28,7 +28,7 @@ impl RadikoStation {
         let res = self
             .inner
             .client
-            .get_http_client()
+            .http_client()
             .get(RadikoEndpoint::station_list_endpoint(area_id))
             .send()
             .await?

@@ -1,3 +1,4 @@
 /target
 *.aac
 .DS_Store
+.env

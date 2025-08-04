@@ -26,7 +26,7 @@ impl RadikoProgram {
         let res = self
             .inner
             .radiko_client
-            .get_http_client()
+            .http_client()
             .get(RadikoEndpoint::now_on_air_programs(area_id))
             .send()
             .await?
@@ -49,7 +49,7 @@ impl RadikoProgram {
         let res = self
             .inner
             .radiko_client
-            .get_http_client()
+            .http_client()
             .get(RadikoEndpoint::search_endpoint())
             .query(&condition.to_query_params())
             .send()
@@ -64,7 +64,7 @@ impl RadikoProgram {
         let res = self
             .inner
             .radiko_client
-            .get_http_client()
+            .http_client()
             .get(RadikoEndpoint::weekly_programs_endpoint(station_id))
             .send()
             .await?

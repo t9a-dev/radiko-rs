@@ -1,15 +1,22 @@
 const V2_URL: &str = "https://radiko.jp/v2/";
 const V3_URL: &str = "https://radiko.jp/v3/";
+const V4_URL: &str = "https://radiko.jp/v4/";
 const API_URL: &str = "https://api.radiko.jp/";
 const AREA_URL: &str = "https://radiko.jp/area/";
-/// radiko_session取得に利用
-pub const LOGIN_CHECK_URL: &str = "https://radiko.jp/ap/member/webapi/v2/member/login/check";
 
 pub struct RadikoEndpoint {}
 
 impl RadikoEndpoint {
+    pub const RADIKO_HOST: &str = "https://radiko.jp";
+    /// radiko_session取得に利用
+    pub const LOGIN_CHECK_URL: &str = "https://radiko.jp/ap/member/webapi/v2/member/login/check";
+
     pub fn area_id_endpoint() -> String {
         AREA_URL.to_string()
+    }
+
+    pub fn login_endpoint() -> String {
+        format!("{}api/member/login", V4_URL)
     }
 
     pub fn auth1_endpoint() -> String {
@@ -124,8 +131,7 @@ mod tests {
     fn playlist_create_url_endpoint_test() {
         let station_id = "TBS";
         let lsid = crate::utils::generate_md5_hash();
-        let playlist_crate_url =
-            RadikoEndpoint::playlist_create_url_endpoint(station_id, &lsid);
+        let playlist_crate_url = RadikoEndpoint::playlist_create_url_endpoint(station_id, &lsid);
         assert_eq!(
             playlist_crate_url,
             format!(
