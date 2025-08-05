@@ -59,6 +59,13 @@ impl RadikoEndpoint {
             station_id, lsid
         )
     }
+
+    pub fn area_free_playlist_create_url_endpoint(station_id: &str, lsid: &str) -> String {
+        format!(
+            "https://si-c-radiko.smartstream.ne.jp/so/playlist.m3u8?station_id={}&l=15&lsid={}&type=c",
+            station_id, lsid
+        )
+    }
 }
 
 #[cfg(test)]
@@ -136,6 +143,21 @@ mod tests {
             playlist_crate_url,
             format!(
                 "https://si-f-radiko.smartstream.ne.jp/so/playlist.m3u8?station_id={}&l=15&lsid={}&type=b",
+                station_id, lsid
+            )
+        )
+    }
+
+    #[test]
+    fn area_free_playlist_create_url_endpoint_test() {
+        let station_id = "MBS";
+        let lsid = crate::utils::generate_md5_hash();
+        let playlist_crate_url =
+            RadikoEndpoint::area_free_playlist_create_url_endpoint(station_id, &lsid);
+        assert_eq!(
+            playlist_crate_url,
+            format!(
+                "https://si-c-radiko.smartstream.ne.jp/so/playlist.m3u8?station_id={}&l=15&lsid={}&type=c",
                 station_id, lsid
             )
         )

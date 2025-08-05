@@ -21,14 +21,17 @@ struct RadikoStreamRef {
 
 impl RadikoStream {
     pub fn new(station_id: &str, radiko_client: RadikoClient) -> Self {
+        let lsid = radiko_client.auth_manager().lsid().to_string();
+        let stream_url = if radiko_client.auth_manager().area_free() {
+            RadikoEndpoint::area_free_playlist_create_url_endpoint(station_id, &lsid)
+        } else {
+            RadikoEndpoint::playlist_create_url_endpoint(station_id, &lsid)
+        };
         Self {
             inner: Arc::new(RadikoStreamRef {
                 station_id: station_id.to_string(),
                 radiko_client: radiko_client.clone(),
-                stream_url: RadikoEndpoint::playlist_create_url_endpoint(
-                    station_id,
-                    &radiko_client.auth_manager().lsid(),
-                ),
+                stream_url: stream_url,
             }),
         }
     }
@@ -133,10 +136,28 @@ mod tests {
     #[tokio::test]
     async fn stream_url_test() -> Result<()> {
         dotenv()?;
+        let station_id = "TBS";
+        let radiko_auth_manager = RadikoAuthManager::new().await;
+        let radiko_client = RadikoClient::new(radiko_auth_manager.clone()).await;
+        let radiko_stream = RadikoStream::new(station_id, radiko_client.clone());
+
+        println!("radiko_auth_manager: {:#?}", radiko_auth_manager);
+        println!("area_id: {}", radiko_client.area_id());
+        println!("station_id: {}", station_id);
+
+        run_ffmpeg_command_stream(radiko_stream, &radiko_auth_manager.auth_token()).await?;
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn area_free_stream_url_test() -> Result<()> {
+        dotenv()?;
         let mail = env::var("mail").expect("failed mail from dotenv");
         let pass = env::var("pass").expect("failed pass from dotenv");
-        let station_id = "TBS";
-        let radiko_auth_manager = RadikoAuthManager::new_area_free(&mail, &pass).await;
+        let area_id = "JP13";
+        let station_id = "MBS";
+        let radiko_auth_manager = RadikoAuthManager::new_area_free(&mail, &pass, area_id).await;
         let radiko_client = RadikoClient::new(radiko_auth_manager.clone()).await;
         let radiko_stream = RadikoStream::new(station_id, radiko_client.clone());
 

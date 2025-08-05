@@ -24,6 +24,7 @@ pub struct RadikoAuthManager {
 #[derive(Debug, Clone)]
 struct RadikoAuthManagerRef {
     area_id: String,
+    area_free: bool,
     http_client: Client,
     auth_token: String,
     stream_lsid: String,
@@ -46,17 +47,25 @@ struct LoginResponse {
 
 impl RadikoAuthManager {
     pub async fn new() -> Self {
-        Self::init(None, None).await.unwrap()
+        Self::init(None, None, None).await.unwrap()
     }
 
-    pub async fn new_area_free(mail: &str, pass: &str) -> Self {
-        Self::init(Some(mail.to_string()), Some(pass.to_string()))
-            .await
-            .unwrap()
+    pub async fn new_area_free(mail: &str, pass: &str, area_id: &str) -> Self {
+        Self::init(
+            Some(mail.to_string()),
+            Some(pass.to_string()),
+            Some(area_id.to_string()),
+        )
+        .await
+        .unwrap()
     }
 
     pub fn area_id(&self) -> Cow<str> {
         Cow::Borrowed(&self.inner.area_id)
+    }
+
+    pub fn area_free(&self) -> bool {
+        self.inner.area_free
     }
 
     pub fn http_client(&self) -> Client {
@@ -72,29 +81,26 @@ impl RadikoAuthManager {
     }
 
     pub async fn refresh_auth(&mut self) -> Result<Self> {
-        Self::init(self.inner.mail.clone(), self.inner.pass.clone()).await
+        Self::init(
+            self.inner.mail.clone(),
+            self.inner.pass.clone(),
+            Some(self.inner.area_id.clone()),
+        )
+        .await
     }
 
-    async fn init(mail: Option<String>, pass: Option<String>) -> Result<Self> {
+    async fn init(
+        mail: Option<String>,
+        pass: Option<String>,
+        area_id: Option<String>,
+    ) -> Result<Self> {
         let is_area_free = mail.is_some() && pass.is_some();
         let auth1_url = RadikoEndpoint::auth1_endpoint();
         let auth2_url = RadikoEndpoint::auth2_endpoint();
         let auth_key = Self::get_public_auth_key().await;
 
-        // login
-        let cookie: Arc<cookie::Jar> = if is_area_free {
-            RadikoAuthManager::login(&mail.clone().unwrap(), &pass.clone().unwrap()).await?
-        } else {
-            Arc::new(Jar::default())
-        };
-
-        let logined_client = Client::builder()
-            .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
-            .cookie_provider(cookie.clone())
-            .build()?;
-
         // get area_id
-        let response_body = logined_client
+        let response_body = Client::new()
             .get(RadikoEndpoint::area_id_endpoint())
             .send()
             .await?
@@ -103,9 +109,24 @@ impl RadikoAuthManager {
 
         let area_id_pattern = Regex::new(r"[A-Z]{2}[0-9]{2}")?;
         let Some(area_id_caps) = area_id_pattern.captures(&response_body) else {
-            panic!("not found pattern area_id");
+            panic!("failed get area_id. not found pattern area_id");
         };
-        let area_id = &area_id_caps[0];
+        let default_area_id = area_id_caps[0].to_string();
+        let area_id = match area_id {
+            Some(area_id) => area_id,
+            None => default_area_id.clone(),
+        };
+
+        // login
+        let cookie: Arc<cookie::Jar> = if is_area_free {
+            RadikoAuthManager::login(&mail.clone().unwrap(), &pass.clone().unwrap()).await?
+        } else {
+            Arc::new(Jar::default())
+        };
+        let logined_client = Client::builder()
+            .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+            .cookie_provider(cookie.clone())
+            .build()?;
 
         // auth1
         let mut headers = HeaderMap::new();
@@ -168,6 +189,7 @@ impl RadikoAuthManager {
         Ok(Self {
             inner: Arc::new(RadikoAuthManagerRef {
                 area_id: area_id.to_string(),
+                area_free: is_area_free,
                 http_client: authed_client,
                 auth_token: auth_token.to_string(),
                 stream_lsid: lsid,
@@ -201,8 +223,6 @@ impl RadikoAuthManager {
             .await?
             .json()
             .await?;
-        // ログインエンドポイントのレスポンスヘッダーのSet-Cookieに指定されているradiko-sessionはダミーのようで、
-        // レスポンスボディに含まれているradiko_sessionの値を利用する必要がある
         let cookie = format!("radiko_session={}", login_res.radiko_session);
         let jar = Arc::new(Jar::default());
         jar.add_cookie_str(&cookie, &Url::from_str(RadikoEndpoint::RADIKO_HOST)?);
