@@ -31,8 +31,12 @@ impl RadikoEndpoint {
         format!("{}api/program/search", V3_URL)
     }
 
-    pub fn station_list_endpoint(area_id: &str) -> String {
+    pub fn station_list_from_area_id_endpoint(area_id: &str) -> String {
         format!("{}station/list/{}.xml", V3_URL, area_id)
+    }
+
+    pub fn station_list_all_endpoint() -> String {
+        format!("{}station/region/full.xml", V3_URL)
     }
 
     // https://api.radiko.jp/program/v3/now/JP13.xml
@@ -108,11 +112,19 @@ mod tests {
     }
 
     #[test]
-    fn stations_endpoint() {
+    fn stations_list_from_area_id_endpoint() {
         let area_id = "JP13";
         assert_eq!(
             format!("https://radiko.jp/v3/station/list/{}.xml", area_id),
-            RadikoEndpoint::station_list_endpoint(area_id)
+            RadikoEndpoint::station_list_from_area_id_endpoint(area_id)
+        );
+    }
+
+    #[test]
+    fn stations_list_all_endpoint() {
+        assert_eq!(
+            "https://radiko.jp/v3/station/region/full.xml",
+            RadikoEndpoint::station_list_all_endpoint()
         );
     }
 

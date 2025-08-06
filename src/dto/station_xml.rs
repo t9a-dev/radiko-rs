@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use super::logo_xml::LogoXml;
+
 #[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(rename = "stations")]
 pub struct RadikoStationXml {
@@ -25,16 +27,4 @@ pub struct StationXml {
     pub href: String,
     pub simul_max_delay: u32,
     pub tf_max_delay: u32,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct LogoXml {
-    #[serde(rename = "@width")]
-    pub width: u32,
-    #[serde(rename = "@height")]
-    pub height: u32,
-    #[serde(rename = "@align")]
-    pub align: String,
-    #[serde(rename = "$text")]
-    pub url: String,
 }
