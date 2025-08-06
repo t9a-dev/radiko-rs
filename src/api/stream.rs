@@ -155,9 +155,8 @@ mod tests {
         dotenv()?;
         let mail = env::var("mail").expect("failed mail from dotenv");
         let pass = env::var("pass").expect("failed pass from dotenv");
-        let area_id = "JP13";
         let station_id = "MBS";
-        let radiko_auth_manager = RadikoAuthManager::new_area_free(&mail, &pass, area_id).await;
+        let radiko_auth_manager = RadikoAuthManager::new_area_free(&mail, &pass).await;
         let radiko_client = RadikoClient::new(radiko_auth_manager.clone()).await;
         let radiko_stream = RadikoStream::new(station_id, radiko_client.clone());
 

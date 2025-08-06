@@ -47,17 +47,13 @@ struct LoginResponse {
 
 impl RadikoAuthManager {
     pub async fn new() -> Self {
-        Self::init(None, None, None).await.unwrap()
+        Self::init(None, None).await.unwrap()
     }
 
-    pub async fn new_area_free(mail: &str, pass: &str, area_id: &str) -> Self {
-        Self::init(
-            Some(mail.to_string()),
-            Some(pass.to_string()),
-            Some(area_id.to_string()),
-        )
-        .await
-        .unwrap()
+    pub async fn new_area_free(mail: &str, pass: &str) -> Self {
+        Self::init(Some(mail.to_string()), Some(pass.to_string()))
+            .await
+            .unwrap()
     }
 
     pub fn area_id(&self) -> Cow<str> {
@@ -81,19 +77,10 @@ impl RadikoAuthManager {
     }
 
     pub async fn refresh_auth(&mut self) -> Result<Self> {
-        Self::init(
-            self.inner.mail.clone(),
-            self.inner.pass.clone(),
-            Some(self.inner.area_id.clone()),
-        )
-        .await
+        Self::init(self.inner.mail.clone(), self.inner.pass.clone()).await
     }
 
-    async fn init(
-        mail: Option<String>,
-        pass: Option<String>,
-        area_id: Option<String>,
-    ) -> Result<Self> {
+    async fn init(mail: Option<String>, pass: Option<String>) -> Result<Self> {
         let is_area_free = mail.is_some() && pass.is_some();
         let auth1_url = RadikoEndpoint::auth1_endpoint();
         let auth2_url = RadikoEndpoint::auth2_endpoint();
@@ -112,10 +99,6 @@ impl RadikoAuthManager {
             panic!("failed get area_id. not found pattern area_id");
         };
         let default_area_id = area_id_caps[0].to_string();
-        let area_id = match area_id {
-            Some(area_id) => area_id,
-            None => default_area_id.clone(),
-        };
 
         // login
         let cookie: Arc<cookie::Jar> = if is_area_free {
@@ -188,7 +171,7 @@ impl RadikoAuthManager {
 
         Ok(Self {
             inner: Arc::new(RadikoAuthManagerRef {
-                area_id: area_id.to_string(),
+                area_id: default_area_id.to_string(),
                 area_free: is_area_free,
                 http_client: authed_client,
                 auth_token: auth_token.to_string(),
