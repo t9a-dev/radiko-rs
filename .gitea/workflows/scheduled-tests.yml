@@ -13,8 +13,9 @@ jobs:
     - name: cargo test on docker
       uses: addnab/docker-run-action@v3
       with:
-        image: ghcr.io/t9a-dev/run-cargo-test:latest
-        run: echo "run cargo test"
+        registry: ghcr.io
+        image: t9a-dev/run-cargo-test:latest
+        #run: echo
     
     - name: Create issue on failure
       if: ${{ failure() }}
