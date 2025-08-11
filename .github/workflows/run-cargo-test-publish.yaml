@@ -40,6 +40,7 @@ jobs:
         with:
           context: .
           file: ./Dockerfile.ci
+          push: true
           # platforms: linux/amd64,linux/arm64  # マルチアーキにするならコメント解除
           tags: ${{ env.IMAGE_NAME }}
           cache-from: type=gha
