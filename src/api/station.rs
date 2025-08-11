@@ -97,7 +97,7 @@ mod tests {
         for region in all_station_list.iter() {
             println!("{}", region.region_name);
             for station in region.stations.iter() {
-                println!("{}:{}", station.id, station.name);
+                println!("{}:{}:{}", station.area_id, station.id, station.name);
             }
             println!("{}", "-".repeat(40));
         }
