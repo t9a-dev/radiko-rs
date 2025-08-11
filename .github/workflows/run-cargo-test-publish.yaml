@@ -9,7 +9,6 @@ on:
 permissions:
   contents: read
   packages: write         # GHCR に push するため
-  id-token: write         # OIDC 署名に必要
 
 env:
   IMAGE_NAME: ghcr.io/t9a-dev/run-cargo-test:latest
