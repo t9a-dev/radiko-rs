@@ -107,8 +107,8 @@ impl RadikoStream {
 mod tests {
     use std::{env, process::Stdio};
 
-    use crate::api::auth::RadikoAuthManager;
     use crate::api::stream::RadikoStream;
+    use crate::api::{auth::RadikoAuthManager, station::RadikoStation};
     use crate::client::RadikoClient;
     use anyhow::Result;
 
@@ -136,10 +136,14 @@ mod tests {
     #[tokio::test]
     async fn stream_url_test() -> Result<()> {
         dotenv()?;
-        let station_id = "TBS";
         let radiko_auth_manager = RadikoAuthManager::new().await;
         let radiko_client = RadikoClient::new(radiko_auth_manager.clone()).await;
-        let radiko_stream = RadikoStream::new(station_id, radiko_client.clone());
+        let radiko_station = RadikoStation::new(radiko_client.clone());
+        let available_stations = radiko_station
+            .get_stations_from_area_id(&radiko_client.area_id())
+            .await?;
+        let station_id = available_stations.data.get(0).unwrap().id.clone();
+        let radiko_stream = RadikoStream::new(&station_id, radiko_client.clone());
 
         println!("radiko_auth_manager: {:#?}", radiko_auth_manager);
         println!("area_id: {}", radiko_client.area_id());
