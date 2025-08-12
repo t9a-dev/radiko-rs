@@ -8,13 +8,18 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    
     steps:
     - name: cargo test on docker
-      uses: addnab/docker-run-action@v3
-      with:
-        image: ghcr.io/t9a-dev/run-cargo-test:latest
-        #run: echo
+      run: |
+        docker pull ghcr.io/t9a-dev/run-cargo-test:latest
+        docker run --rm ghcr.io/t9a-dev/run-cargo-test:latest
+
+    # steps:
+    # - name: cargo test on docker
+    #   uses: addnab/docker-run-action@v3
+    #   with:
+    #     image: ghcr.io/t9a-dev/run-cargo-test:latest
+    #     #run: echo
     
     - name: Create issue on failure
       if: ${{ failure() }}
