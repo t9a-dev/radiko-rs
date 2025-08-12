@@ -14,13 +14,6 @@ jobs:
         docker pull ghcr.io/t9a-dev/run-cargo-test:latest
         # Radiko APIに変更があるとテストが失敗する（Radiko API変更検知）
         docker run -e mail=${{ secrets.RADIKO_MAIL }} -e pass=${{ secrets.RADIKO_PASS}} --rm ghcr.io/t9a-dev/run-cargo-test:latest
-
-    # steps:
-    # - name: cargo test on docker
-    #   uses: addnab/docker-run-action@v3
-    #   with:
-    #     image: ghcr.io/t9a-dev/run-cargo-test:latest
-    #     #run: echo
     
     - name: Create issue on failure
       if: ${{ failure() }}
