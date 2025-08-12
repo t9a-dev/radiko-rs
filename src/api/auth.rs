@@ -230,14 +230,16 @@ impl RadikoAuthManager {
 
 #[cfg(test)]
 mod tests {
-    use dotenvy::dotenv;
+    
+
+    use crate::utils;
 
     use super::*;
     use std::env;
 
     #[tokio::test]
     async fn login_process_test() -> Result<()> {
-        dotenv()?;
+        utils::load_env();
         let mail = env::var("mail").expect("failed mail from dotenv");
         let pass = env::var("pass").expect("failed pass from dotenv");
         let _ = RadikoAuthManager::login(&mail, &pass).await?;

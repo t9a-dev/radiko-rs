@@ -22,3 +22,12 @@ pub fn generate_md5_hash() -> String {
     // 16進数文字列として返す
     format!("{:x}", result)
 }
+
+#[allow(dead_code)]
+pub fn load_env() {
+    let dotenv_path = ".env";
+    match dotenvy::from_path(dotenv_path) {
+        Ok(_) => (),
+        Err(e) => println!("load dotenv error path: {}, error: {}", dotenv_path, e),
+    }
+}

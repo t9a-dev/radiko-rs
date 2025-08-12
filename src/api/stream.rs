@@ -110,9 +110,10 @@ mod tests {
     use crate::api::stream::RadikoStream;
     use crate::api::{auth::RadikoAuthManager, station::RadikoStation};
     use crate::client::RadikoClient;
+    use crate::utils::{load_env};
     use anyhow::Result;
 
-    use dotenvy::dotenv;
+    
     use tokio::{
         io::{AsyncBufReadExt, BufReader},
         process::Command,
@@ -135,7 +136,6 @@ mod tests {
 
     #[tokio::test]
     async fn stream_url_test() -> Result<()> {
-        dotenv()?;
         let radiko_auth_manager = RadikoAuthManager::new().await;
         let radiko_client = RadikoClient::new(radiko_auth_manager.clone()).await;
         let radiko_station = RadikoStation::new(radiko_client.clone());
@@ -156,7 +156,7 @@ mod tests {
 
     #[tokio::test]
     async fn area_free_stream_url_test() -> Result<()> {
-        dotenv()?;
+        load_env();
         let mail = env::var("mail").expect("failed mail from dotenv");
         let pass = env::var("pass").expect("failed pass from dotenv");
         let station_id = "MBS";
