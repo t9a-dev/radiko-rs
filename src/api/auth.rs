@@ -9,6 +9,7 @@ use reqwest::{
     cookie::{self, Jar},
     header::HeaderMap,
 };
+use secrecy::{ExposeSecret, SecretString};
 use serde::{Deserialize, Serialize};
 
 use crate::api::endpoint::RadikoEndpoint;
@@ -28,8 +29,8 @@ struct RadikoAuthManagerRef {
     http_client: Client,
     auth_token: String,
     stream_lsid: String,
-    mail: Option<String>,
-    pass: Option<String>,
+    mail: Option<SecretString>,
+    pass: Option<SecretString>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -51,9 +52,12 @@ impl RadikoAuthManager {
     }
 
     pub async fn new_area_free(mail: &str, pass: &str) -> Self {
-        Self::init(Some(mail.to_string()), Some(pass.to_string()))
-            .await
-            .unwrap()
+        Self::init(
+            Some(SecretString::new(mail.into())),
+            Some(SecretString::new(pass.into())),
+        )
+        .await
+        .unwrap()
     }
 
     pub fn area_id(&self) -> Cow<str> {
@@ -80,7 +84,7 @@ impl RadikoAuthManager {
         Self::init(self.inner.mail.clone(), self.inner.pass.clone()).await
     }
 
-    async fn init(mail: Option<String>, pass: Option<String>) -> Result<Self> {
+    async fn init(mail: Option<SecretString>, pass: Option<SecretString>) -> Result<Self> {
         let is_area_free = mail.is_some() && pass.is_some();
         let auth1_url = RadikoEndpoint::auth1_endpoint();
         let auth2_url = RadikoEndpoint::auth2_endpoint();
@@ -102,7 +106,11 @@ impl RadikoAuthManager {
 
         // login
         let cookie: Arc<cookie::Jar> = if is_area_free {
-            RadikoAuthManager::login(&mail.clone().unwrap(), &pass.clone().unwrap()).await?
+            RadikoAuthManager::login(
+                &mail.clone().unwrap().expose_secret(),
+                &pass.clone().unwrap().expose_secret(),
+            )
+            .await?
         } else {
             Arc::new(Jar::default())
         };
@@ -230,7 +238,6 @@ impl RadikoAuthManager {
 
 #[cfg(test)]
 mod tests {
-    
 
     use crate::utils;
 
