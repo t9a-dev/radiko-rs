@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
-    client::RadikoClient,
+    api::client::RadikoClient,
     dto::{region_xml::RegionXml, station_xml::RadikoStationXml},
     models::{
         region::{Region, RegionStations},
@@ -19,11 +19,11 @@ pub struct RadikoStation {
 
 #[derive(Debug, Clone)]
 struct RadikoStationRef {
-    client: RadikoClient,
+    client: Arc<RadikoClient>,
 }
 
 impl RadikoStation {
-    pub fn new(radiko_client: RadikoClient) -> Self {
+    pub fn new(radiko_client: Arc<RadikoClient>) -> Self {
         Self {
             inner: Arc::new(RadikoStationRef {
                 client: radiko_client,
@@ -66,19 +66,14 @@ impl RadikoStation {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        api::{auth::RadikoAuthManager, station::RadikoStation},
-        client::RadikoClient,
-    };
-    use anyhow::{Ok, Result};
+    use super::*;
+    use crate::radiko::Radiko;
 
     #[tokio::test]
     async fn get_stations_test() -> Result<()> {
         let area_id = "JP13";
-        let radiko_auth_manager = RadikoAuthManager::new().await;
-        let radiko_client = RadikoClient::new(radiko_auth_manager).await;
-        let radiko_station = RadikoStation::new(radiko_client);
-        let stations = radiko_station.get_stations_from_area_id(area_id).await?;
+        let radiko = Radiko::new().await;
+        let stations = radiko.station().get_stations_from_area_id(area_id).await?;
 
         println!("{}_stations: {:#?}", area_id, stations);
 
@@ -89,10 +84,8 @@ mod tests {
 
     #[tokio::test]
     async fn get_station_list_all_test() -> Result<()> {
-        let radiko_auth_manager = RadikoAuthManager::new().await;
-        let radiko_client = RadikoClient::new(radiko_auth_manager).await;
-        let radiko_station = RadikoStation::new(radiko_client);
-        let all_station_list = radiko_station.get_station_list_all().await?;
+        let radiko = Radiko::new().await;
+        let all_station_list = radiko.station().get_station_list_all().await?;
 
         for region in all_station_list.iter() {
             println!("{}", region.region_name);

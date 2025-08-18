@@ -11,24 +11,24 @@ pub struct RadikoClient {
 
 #[derive(Debug, Clone)]
 struct RadikoClientRef {
-    auth_manager: RadikoAuthManager,
+    auth_manager: Arc<RadikoAuthManager>,
     http_client: Client,
     area_id: String,
 }
 
 impl RadikoClient {
-    pub async fn new(radiko_auth_manager: RadikoAuthManager) -> Self {
+    pub async fn new(radiko_auth_manager: Arc<RadikoAuthManager>) -> Self {
         Self {
             inner: Arc::new(RadikoClientRef {
-                auth_manager: radiko_auth_manager.clone(),
+                auth_manager: Arc::clone(&radiko_auth_manager),
                 http_client: radiko_auth_manager.http_client(),
                 area_id: radiko_auth_manager.area_id().to_string(),
             }),
         }
     }
 
-    pub fn auth_manager(&self) -> RadikoAuthManager {
-        self.inner.auth_manager.clone()
+    pub fn auth_manager(&self) -> Arc<RadikoAuthManager> {
+        Arc::clone(&self.inner.auth_manager)
     }
 
     pub fn area_id(&self) -> String {

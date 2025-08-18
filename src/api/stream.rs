@@ -5,7 +5,7 @@ use hls_m3u8::MasterPlaylist;
 use reqwest::Client;
 use tempfile::NamedTempFile;
 
-use crate::client::RadikoClient;
+use crate::api::client::RadikoClient;
 
 use super::endpoint::RadikoEndpoint;
 
@@ -14,44 +14,35 @@ pub struct RadikoStream {
 }
 
 struct RadikoStreamRef {
-    station_id: String,
-    radiko_client: RadikoClient,
-    stream_url: String,
+    radiko_client: Arc<RadikoClient>,
 }
 
 impl RadikoStream {
-    pub fn new(station_id: &str, radiko_client: RadikoClient) -> Self {
-        let lsid = radiko_client.auth_manager().lsid().to_string();
-        let stream_url = if radiko_client.auth_manager().area_free() {
-            RadikoEndpoint::area_free_playlist_create_url_endpoint(station_id, &lsid)
-        } else {
-            RadikoEndpoint::playlist_create_url_endpoint(station_id, &lsid)
-        };
+    pub fn new(radiko_client: Arc<RadikoClient>) -> Self {
         Self {
             inner: Arc::new(RadikoStreamRef {
-                station_id: station_id.to_string(),
                 radiko_client: radiko_client.clone(),
-                stream_url: stream_url,
             }),
         }
-    }
-
-    pub fn station_id(&self) -> Cow<str> {
-        Cow::Borrowed(&self.inner.station_id)
     }
 
     pub fn http_client(&self) -> Client {
         self.inner.radiko_client.http_client()
     }
 
-    pub fn stream_url(&self) -> Cow<str> {
-        Cow::Borrowed(&self.inner.stream_url)
+    pub fn stream_url(&self, station_id: &str) -> String {
+        let lsid = &self.inner.radiko_client.auth_manager().lsid().to_string();
+        if self.inner.radiko_client.auth_manager().area_free() {
+            RadikoEndpoint::area_free_playlist_create_url_endpoint(station_id, &lsid)
+        } else {
+            RadikoEndpoint::playlist_create_url_endpoint(station_id, &lsid)
+        }
     }
 
-    pub async fn get_hls_master_playlist_content(&self) -> Result<Cow<str>> {
+    pub async fn get_hls_master_playlist_content(&self, station_id: &str) -> Result<Cow<str>> {
         let master_playlist_res = self
             .http_client()
-            .get(&self.inner.stream_url)
+            .get(&self.stream_url(station_id))
             .send()
             .await?;
 
@@ -86,10 +77,10 @@ impl RadikoStream {
             .into())
     }
 
-    pub async fn download_playlist_to_tempfile(&self) -> Result<NamedTempFile> {
+    pub async fn download_playlist_to_tempfile(&self, station_id: &str) -> Result<NamedTempFile> {
         let playlist_content = self
             .http_client()
-            .get(self.stream_url().as_ref())
+            .get(&self.stream_url(station_id))
             .send()
             .await?
             .bytes()
@@ -105,15 +96,15 @@ impl RadikoStream {
 
 #[cfg(test)]
 mod tests {
+    use crate::radiko::Radiko;
+    use crate::utils::load_env;
     use std::{env, process::Stdio};
 
-    use crate::api::stream::RadikoStream;
-    use crate::api::{auth::RadikoAuthManager, station::RadikoStation};
-    use crate::client::RadikoClient;
-    use crate::utils::{load_env};
+    
+    
+    
     use anyhow::Result;
 
-    
     use tokio::{
         io::{AsyncBufReadExt, BufReader},
         process::Command,
@@ -122,12 +113,15 @@ mod tests {
     #[tokio::test]
     async fn hls_m3u8_playground() -> Result<()> {
         let station_id = "TBS";
-        let radiko_auth_manager = RadikoAuthManager::new().await;
-        let radiko_client = RadikoClient::new(radiko_auth_manager.clone()).await;
-        let radiko_stream = RadikoStream::new(station_id, radiko_client.clone());
+        let radiko = Radiko::new().await;
 
-        let master_playlist_content = radiko_stream.get_hls_master_playlist_content().await?;
-        let segment_uri = radiko_stream.extract_medialist_url(&master_playlist_content)?;
+        let master_playlist_content = radiko
+            .stream()
+            .get_hls_master_playlist_content(station_id)
+            .await?;
+        let segment_uri = radiko
+            .stream()
+            .extract_medialist_url(&master_playlist_content)?;
 
         println!("parsed_uri: {}", segment_uri);
 
@@ -136,20 +130,14 @@ mod tests {
 
     #[tokio::test]
     async fn stream_url_test() -> Result<()> {
-        let radiko_auth_manager = RadikoAuthManager::new().await;
-        let radiko_client = RadikoClient::new(radiko_auth_manager.clone()).await;
-        let radiko_station = RadikoStation::new(radiko_client.clone());
-        let available_stations = radiko_station
-            .get_stations_from_area_id(&radiko_client.area_id())
+        let radiko = Radiko::new().await;
+        let available_stations = radiko
+            .station()
+            .get_stations_from_area_id(&radiko.auth_manager().area_id())
             .await?;
         let station_id = available_stations.data.get(0).unwrap().id.clone();
-        let radiko_stream = RadikoStream::new(&station_id, radiko_client.clone());
 
-        println!("radiko_auth_manager: {:#?}", radiko_auth_manager);
-        println!("area_id: {}", radiko_client.area_id());
-        println!("station_id: {}", station_id);
-
-        run_ffmpeg_command_stream(radiko_stream, &radiko_auth_manager.auth_token()).await?;
+        run_ffmpeg_command_stream(radiko, &station_id).await?;
 
         Ok(())
     }
@@ -160,24 +148,18 @@ mod tests {
         let mail = env::var("mail").expect("failed mail from dotenv");
         let pass = env::var("pass").expect("failed pass from dotenv");
         let station_id = "MBS";
-        let radiko_auth_manager = RadikoAuthManager::new_area_free(&mail, &pass).await;
-        let radiko_client = RadikoClient::new(radiko_auth_manager.clone()).await;
-        let radiko_stream = RadikoStream::new(station_id, radiko_client.clone());
+        let radiko = Radiko::new_area_free(&mail, &pass).await;
 
-        println!("radiko_auth_manager: {:#?}", radiko_auth_manager);
-        println!("area_id: {}", radiko_client.area_id());
         println!("station_id: {}", station_id);
 
-        run_ffmpeg_command_stream(radiko_stream, &radiko_auth_manager.auth_token()).await?;
+        run_ffmpeg_command_stream(radiko, station_id).await?;
 
         Ok(())
     }
 
-    async fn run_ffmpeg_command_stream(
-        radiko_stream: RadikoStream,
-        radiko_auth_token: &str,
-    ) -> Result<()> {
-        let strem_url = radiko_stream.stream_url();
+    async fn run_ffmpeg_command_stream(radiko: Radiko, station_id: &str) -> Result<()> {
+        let strem_url = radiko.stream().stream_url(station_id);
+        let token = radiko.auth_manager().auth_token().to_string();
 
         let cmd = Command::new("ffmpeg")
             .args([
@@ -186,7 +168,7 @@ mod tests {
                 "-protocol_whitelist",
                 "file,http,https,tcp,tls,crypto",
                 "-headers",
-                &format!("X-Radiko-Authtoken: {}\r\n", radiko_auth_token),
+                &format!("X-Radiko-Authtoken: {}\r\n", token),
                 "-allowed_extensions",
                 "ALL",
                 "-seekable",

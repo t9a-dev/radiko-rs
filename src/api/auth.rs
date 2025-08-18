@@ -14,9 +14,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::api::endpoint::RadikoEndpoint;
 
-pub const USER_AGENT_VALUE: &str =
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:140.0) Gecko/20100101 Firefox/140.0";
-
 #[derive(Debug, Clone)]
 pub struct RadikoAuthManager {
     inner: Arc<RadikoAuthManagerRef>,

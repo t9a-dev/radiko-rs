@@ -47,12 +47,9 @@ impl RadikoEndpoint {
         format!("{}program/v3/weekly/{}.xml", API_URL, station_id)
     }
 
+    #[allow(dead_code)]
     pub fn stream_url_list_endpoint(station_id: &str) -> String {
         format!("{}station/stream/pc_html5/{}.xml", V3_URL, station_id)
-    }
-
-    pub fn stream_url(station_id: &str, stream_url: &str) -> String {
-        format!("{}?station_id={}&l=15&lsid=&type=b", stream_url, station_id)
     }
 
     /// HLSストリーミングのMasterPlaylist.m3u8を返すエンドポイントを取得

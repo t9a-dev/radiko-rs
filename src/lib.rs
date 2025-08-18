@@ -1,5 +1,5 @@
-pub mod api;
-pub mod client;
+pub(crate) mod api;
 mod dto;
-pub mod models;
+pub(crate) mod models;
+pub mod radiko;
 mod utils;
