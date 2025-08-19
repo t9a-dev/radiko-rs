@@ -77,7 +77,7 @@ impl RadikoAuthManager {
         Cow::Borrowed(&self.inner.stream_lsid)
     }
 
-    pub async fn refresh_auth(&mut self) -> Result<Self> {
+    pub async fn refresh_auth(&self) -> Result<Self> {
         Self::init(self.inner.mail.clone(), self.inner.pass.clone()).await
     }
 
@@ -256,6 +256,19 @@ mod tests {
         let radiko_auth_manager = RadikoAuthManager::new().await;
 
         println!("radiko_auth_manager: {:#?}", radiko_auth_manager);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn refresh_auth_test() -> Result<()> {
+        let radiko_auth_manager = RadikoAuthManager::new().await;
+        let refreshed_auth_manager = radiko_auth_manager.refresh_auth().await?;
+
+        assert_ne!(
+            radiko_auth_manager.auth_token(),
+            refreshed_auth_manager.auth_token()
+        );
 
         Ok(())
     }
