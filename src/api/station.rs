@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use crate::{
-    api::client::RadikoClient,
     dto::{region_xml::RegionXml, station_xml::RadikoStationXml},
     models::{
         region::{Region, RegionStations},
@@ -9,6 +8,7 @@ use crate::{
     },
 };
 use anyhow::Result;
+use reqwest::Client;
 
 use super::endpoint::RadikoEndpoint;
 
@@ -19,23 +19,22 @@ pub struct RadikoStation {
 
 #[derive(Debug, Clone)]
 struct RadikoStationRef {
-    client: Arc<RadikoClient>,
+    client: Client,
 }
 
 impl RadikoStation {
-    pub fn new(radiko_client: Arc<RadikoClient>) -> Self {
+    pub fn new() -> Self {
         Self {
             inner: Arc::new(RadikoStationRef {
-                client: radiko_client,
+                client: Client::new(),
             }),
         }
     }
 
-    pub async fn get_stations_from_area_id(&self, area_id: &str) -> Result<Stations> {
+    pub async fn stations_from_area_id(&self, area_id: &str) -> Result<Stations> {
         let res = self
             .inner
             .client
-            .http_client()
             .get(RadikoEndpoint::station_list_from_area_id_endpoint(area_id))
             .send()
             .await?
@@ -47,11 +46,10 @@ impl RadikoStation {
         Ok(Stations::from(radiko_station))
     }
 
-    pub async fn get_station_list_all(&self) -> Result<Vec<RegionStations>> {
+    pub async fn stations_all(&self) -> Result<Vec<RegionStations>> {
         let res = self
             .inner
             .client
-            .http_client()
             .get(RadikoEndpoint::station_list_all_endpoint())
             .send()
             .await?
@@ -73,7 +71,7 @@ mod tests {
     async fn get_stations_test() -> Result<()> {
         let area_id = "JP13";
         let radiko = Radiko::new().await;
-        let stations = radiko.station().get_stations_from_area_id(area_id).await?;
+        let stations = radiko.stations_from_area_id(area_id).await?;
 
         println!("{}_stations: {:#?}", area_id, stations);
 
@@ -85,7 +83,7 @@ mod tests {
     #[tokio::test]
     async fn get_station_list_all_test() -> Result<()> {
         let radiko = Radiko::new().await;
-        let all_station_list = radiko.station().get_station_list_all().await?;
+        let all_station_list = radiko.stations_all().await?;
 
         for region in all_station_list.iter() {
             println!("{}", region.region_name);

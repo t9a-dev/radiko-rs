@@ -77,6 +77,7 @@ impl RadikoAuthManager {
         Cow::Borrowed(&self.inner.stream_lsid)
     }
 
+    #[allow(dead_code)]
     pub async fn refresh_auth(&self) -> Result<Self> {
         Self::init(self.inner.mail.clone(), self.inner.pass.clone()).await
     }

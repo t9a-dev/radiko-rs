@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
-use crate::api::client::RadikoClient;
 use crate::models::search::SearchCondition;
 use crate::{dto::program_xml::RadikoProgramXml, models::program::Programs};
 use anyhow::{Result, anyhow};
+use reqwest::Client;
 
 use super::endpoint::RadikoEndpoint;
 
@@ -12,21 +12,22 @@ pub struct RadikoProgram {
 }
 
 struct RadikoProgramRef {
-    radiko_client: Arc<RadikoClient>,
+    client: Client,
 }
 
 impl RadikoProgram {
-    pub fn new(radiko_client: Arc<RadikoClient>) -> Self {
+    pub fn new() -> Self {
         Self {
-            inner: Arc::new(RadikoProgramRef { radiko_client }),
+            inner: Arc::new(RadikoProgramRef {
+                client: Client::new(),
+            }),
         }
     }
 
-    pub async fn get_now_on_air_programs(&self, area_id: &str) -> Result<Programs> {
+    pub async fn now_on_air_programs(&self, area_id: &str) -> Result<Programs> {
         let res = self
             .inner
-            .radiko_client
-            .http_client()
+            .client
             .get(RadikoEndpoint::now_on_air_programs(area_id))
             .send()
             .await?
@@ -38,18 +39,14 @@ impl RadikoProgram {
         Ok(Programs::from(radiko_program))
     }
 
-    pub async fn find_program_from_condition(
-        &self,
-        condition: &SearchCondition,
-    ) -> Result<Programs> {
+    pub async fn find_program(&self, condition: &SearchCondition) -> Result<Programs> {
         if condition.key.is_empty() {
             return Err(anyhow!("condition key required."));
         }
 
         let res = self
             .inner
-            .radiko_client
-            .http_client()
+            .client
             .get(RadikoEndpoint::search_endpoint())
             .query(&condition.to_query_params())
             .send()
@@ -60,11 +57,10 @@ impl RadikoProgram {
         Ok(serde_json::from_str(&res)?)
     }
 
-    pub async fn find_weekly_programs_from_station(&self, station_id: &str) -> Result<Programs> {
+    pub async fn weekly_programs_from_station(&self, station_id: &str) -> Result<Programs> {
         let res = self
             .inner
-            .radiko_client
-            .http_client()
+            .client
             .get(RadikoEndpoint::weekly_programs_endpoint(station_id))
             .send()
             .await?
@@ -86,7 +82,7 @@ mod tests {
     async fn get_now_on_air_programs_test() -> Result<()> {
         let area_id = "JP13";
         let radiko = Radiko::new().await;
-        let programs = radiko.program().get_now_on_air_programs(area_id).await?;
+        let programs = radiko.now_on_air_programs(area_id).await?;
 
         println!("{}_now_on_air_programs: {:#?}", area_id, programs);
 
@@ -103,10 +99,7 @@ mod tests {
             ..Default::default()
         };
         let radiko = Radiko::new().await;
-        let result = radiko
-            .program()
-            .find_program_from_condition(&search_condition)
-            .await?;
+        let result = radiko.find_program(&search_condition).await?;
 
         println!("{:#?}", result);
 
@@ -118,10 +111,7 @@ mod tests {
     async fn find_weekly_programs_from_station_test() -> Result<()> {
         let station_id = "LFR";
         let radiko = Radiko::new().await;
-        let programs = radiko
-            .program()
-            .find_weekly_programs_from_station(station_id)
-            .await?;
+        let programs = radiko.weekly_programs_from_station(station_id).await?;
 
         println!("{}_weekly_programs: {:#?}", station_id, programs);
 
@@ -134,10 +124,7 @@ mod tests {
     async fn program_duration_methods_test() -> Result<()> {
         let station_id = "LFR";
         let radiko = Radiko::new().await;
-        let programs = radiko
-            .program()
-            .find_weekly_programs_from_station(station_id)
-            .await?;
+        let programs = radiko.weekly_programs_from_station(station_id).await?;
         let program_len = programs.data.len();
         let target_program = programs.data[program_len - 150].clone();
 
@@ -145,14 +132,12 @@ mod tests {
 
         println!(
             "now2start_time num_secs: {:#?}",
-            target_program
-                .get_duration_to_start_from_now()
-                .num_seconds()
+            target_program.now_to_start_duration(None)
         );
 
         println!(
             "start2end secs: {:#?}",
-            target_program.get_duration_start_to_end()
+            target_program.start_to_end_duration()
         );
 
         assert!(!programs.data.is_empty());

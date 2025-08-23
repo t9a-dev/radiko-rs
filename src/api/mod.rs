@@ -1,6 +1,5 @@
-pub mod auth;
-pub mod client;
-pub mod endpoint;
-pub mod program;
-pub mod station;
-pub mod stream;
+pub(crate) mod auth;
+pub(crate) mod endpoint;
+pub(crate) mod program;
+pub(crate) mod station;
+pub(crate) mod stream;

@@ -1,4 +1,4 @@
-use chrono::{DateTime, NaiveDateTime, TimeDelta, TimeZone, Utc};
+use chrono::{DateTime, NaiveDateTime, TimeZone, Utc};
 use chrono_tz::{Asia::Tokyo, Tz};
 use serde_derive::{Deserialize, Serialize};
 
@@ -101,13 +101,22 @@ pub struct Programs {
 }
 
 impl Program {
-    pub fn get_duration_to_start_from_now(&self) -> TimeDelta {
-        let now = Utc::now().with_timezone(&Tokyo);
-        self.start_time.signed_duration_since(now)
+    pub fn now_to_start_duration(&self, now: Option<DateTime<Tz>>) -> u64 {
+        let now = match now {
+            Some(now) => now,
+            None => Utc::now().with_timezone(&Tokyo),
+        };
+        let duration = self.start_time.signed_duration_since(now).num_seconds();
+        if duration <= 0 {
+            return 0;
+        }
+        duration as u64
     }
 
-    pub fn get_duration_start_to_end(&self) -> TimeDelta {
-        self.end_time.signed_duration_since(self.start_time)
+    pub fn start_to_end_duration(&self) -> u64 {
+        self.end_time
+            .signed_duration_since(self.start_time)
+            .num_seconds() as u64
     }
 }
 
