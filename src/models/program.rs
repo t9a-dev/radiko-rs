@@ -118,6 +118,18 @@ impl Program {
             .signed_duration_since(self.start_time)
             .num_seconds() as u64
     }
+
+    pub fn now_to_end_duration(&self, now: Option<DateTime<Tz>>) -> u64 {
+        let now = match now {
+            Some(now) => now,
+            None => Utc::now().with_timezone(&Tokyo),
+        };
+        let duration = self.end_time.signed_duration_since(now).num_seconds();
+        if duration <= 0 {
+            return 0;
+        }
+        duration as u64
+    }
 }
 
 impl From<ProgramXml> for Program {
