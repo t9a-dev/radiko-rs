@@ -1,4 +1,5 @@
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
 use crate::{
     api::{
@@ -68,48 +69,44 @@ impl Radiko {
     }
 
     pub async fn refresh_auth(&self) -> Result<()> {
-        let email = self.inner.read().unwrap().email.clone();
-        let password = self.inner.read().unwrap().password.clone();
-        let mut inner = self.inner.write().unwrap();
+        let email = self.inner.read().await.email.clone();
+        let password = self.inner.read().await.password.clone();
+        let mut inner = self.inner.write().await;
         *inner = Self::init_inner(email, password).await;
         drop(inner);
         Ok(())
     }
 
-    pub fn area_id(&self) -> String {
-        self.inner
-            .read()
-            .unwrap()
-            .auth_manager
-            .area_id()
-            .to_string()
+    pub async fn area_id(&self) -> String {
+        self.inner.read().await.auth_manager.area_id().to_string()
     }
-    pub fn auth_token(&self) -> String {
+
+    pub async fn auth_token(&self) -> String {
         self.inner
             .read()
-            .unwrap()
+            .await
             .auth_manager
             .auth_token()
             .to_string()
     }
 
-    pub fn stream_url(&self, station_id: &str) -> String {
+    pub async fn stream_url(&self, station_id: &str) -> String {
         self.inner
             .read()
-            .unwrap()
+            .await
             .stream
             .stream_url(station_id)
             .to_string()
     }
 
     pub async fn stations_all(&self) -> Result<Vec<RegionStations>> {
-        self.inner.read().unwrap().station.stations_all().await
+        self.inner.read().await.station.stations_all().await
     }
 
     pub async fn stations_from_area_id(&self, area_id: &str) -> Result<Stations> {
         self.inner
             .read()
-            .unwrap()
+            .await
             .station
             .stations_from_area_id(area_id)
             .await
@@ -118,7 +115,7 @@ impl Radiko {
     pub async fn now_on_air_programs(&self, area_id: &str) -> Result<Programs> {
         self.inner
             .read()
-            .unwrap()
+            .await
             .program
             .now_on_air_programs(area_id)
             .await
@@ -127,7 +124,7 @@ impl Radiko {
     pub async fn weekly_programs_from_station(&self, station_id: &str) -> Result<Programs> {
         self.inner
             .read()
-            .unwrap()
+            .await
             .program
             .weekly_programs_from_station(station_id)
             .await
@@ -136,7 +133,7 @@ impl Radiko {
     pub async fn find_program(&self, search_condition: &SearchCondition) -> Result<Programs> {
         self.inner
             .read()
-            .unwrap()
+            .await
             .program
             .find_program(search_condition)
             .await

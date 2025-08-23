@@ -126,7 +126,9 @@ mod tests {
     #[tokio::test]
     async fn stream_url_test() -> Result<()> {
         let radiko = Radiko::new().await;
-        let available_stations = radiko.stations_from_area_id(&radiko.area_id()).await?;
+        let available_stations = radiko
+            .stations_from_area_id(&radiko.area_id().await)
+            .await?;
         let station_id = available_stations.data.get(0).unwrap().id.clone();
 
         run_ffmpeg_command_stream(radiko, &station_id).await?;
@@ -150,8 +152,8 @@ mod tests {
     }
 
     async fn run_ffmpeg_command_stream(radiko: Radiko, station_id: &str) -> Result<()> {
-        let strem_url = radiko.stream_url(station_id);
-        let token = radiko.auth_token().to_string();
+        let strem_url = radiko.stream_url(station_id).await;
+        let token = radiko.auth_token().await.to_string();
 
         let cmd = Command::new("ffmpeg")
             .args([
