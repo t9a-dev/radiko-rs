@@ -101,16 +101,16 @@ pub struct Programs {
 }
 
 impl Program {
-    pub fn now_to_start_duration(&self, now: Option<DateTime<Tz>>) -> u64 {
+    pub fn now_to_start_duration(&self, now: Option<DateTime<Tz>>) -> Option<u64> {
         let now = match now {
             Some(now) => now,
             None => Utc::now().with_timezone(&Tokyo),
         };
         let duration = self.start_time.signed_duration_since(now).num_seconds();
         if duration <= 0 {
-            return 0;
+            return None;
         }
-        duration as u64
+        Some(duration as u64)
     }
 
     pub fn start_to_end_duration(&self) -> u64 {
@@ -119,16 +119,16 @@ impl Program {
             .num_seconds() as u64
     }
 
-    pub fn now_to_end_duration(&self, now: Option<DateTime<Tz>>) -> u64 {
+    pub fn now_to_end_duration(&self, now: Option<DateTime<Tz>>) -> Option<u64> {
         let now = match now {
             Some(now) => now,
             None => Utc::now().with_timezone(&Tokyo),
         };
         let duration = self.end_time.signed_duration_since(now).num_seconds();
         if duration <= 0 {
-            return 0;
+            return None;
         }
-        duration as u64
+        Some(duration as u64)
     }
 }
 
