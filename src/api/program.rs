@@ -124,9 +124,12 @@ mod tests {
     async fn program_duration_methods_test() -> Result<()> {
         let station_id = "LFR";
         let radiko = Radiko::new().await;
-        let programs = radiko.weekly_programs_from_station(station_id).await?;
+        let programs = radiko
+            .weekly_programs_from_station(station_id)
+            .await
+            .expect("failed get weekly_programs_from_station");
         let program_len = programs.data.len();
-        let target_program = programs.data[program_len - 150].clone();
+        let target_program = programs.data[program_len - 1].clone();
 
         println!("program: {:#?}", target_program);
 
